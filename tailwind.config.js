@@ -20,6 +20,9 @@ module.exports = {
         "neutral-06": "#B1B1B1",
         "neutral-07": "#656565",
         "neutral-08": "#4E4E4E",
+
+        "neutral-09": "#f0ece6",
+        
         "error-full-opacity": "#DA1E28",
         "error": "#FD2148",
         "error-80": "#E04951",
