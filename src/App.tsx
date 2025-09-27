@@ -1,3 +1,4 @@
+import { ToastProvider } from "./contexts/ToastContext";
 import { Routes } from "./routes";
 
 // Importar Reactotron apenas em desenvolvimento
@@ -6,7 +7,11 @@ if (import.meta.env.DEV) {
 }
 
 function App() {
-  return <Routes />;
+  return (
+    <ToastProvider>
+      <Routes />
+    </ToastProvider>
+  );
 }
 
 export default App;

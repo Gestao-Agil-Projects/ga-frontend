@@ -1,3 +1,7 @@
+import { Calendar } from "lucide-react";
+import { useDate } from "../hooks/useDate";
+import DatePicker from "../../Calendar";
+
 interface InputProps {
     type: string;
     value: string;
@@ -6,6 +10,8 @@ interface InputProps {
     label?: string;
     required?: boolean;
     className?: string;
+    inputDate?: boolean;
+    onDateChange?: (date: Date | null) => void;
 }
 
 export default function Input({ 
@@ -15,8 +21,53 @@ export default function Input({
     placeholder, 
     label,
     required = false,
-    className = "w-full px-4 py-1 border border-gray-300 rounded-lg focus:outline-none bg-white placeholder:text-sm"
+    className = "w-full px-4 py-1 border border-neutral-10 rounded-lg focus:outline-none bg-white placeholder:text-sm",
+    inputDate = false,
+    onDateChange
 }: InputProps) {
+    const {
+        isDatePickerOpen,
+        inputValue,
+        handleInputChange,
+        handleDateSelect,
+        toggleDatePicker,
+        closeDatePicker
+    } = useDate({ value, onChange, onDateChange });
+
+    if (inputDate) {
+        return (
+            <div>
+                {label && (
+                    <label className="block text-sm font-medium text-neutral-22 mb-2">
+                        {label}
+                        {required && <span className="text-neutral-22 ml-1">*</span>}
+                    </label>
+                )}
+                <div className="relative">
+                    <input
+                        type="text"
+                        value={inputValue}
+                        onChange={handleInputChange}
+                        placeholder={placeholder}
+                        className={`${className} pr-10`}
+                        maxLength={10}
+                    />
+                    <Calendar 
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-13 cursor-pointer"
+                        onClick={toggleDatePicker}
+                    />
+                    
+                    <DatePicker
+                        value={value}
+                        onDateSelect={handleDateSelect}
+                        isOpen={isDatePickerOpen}
+                        onClose={closeDatePicker}
+                    />
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div>
             {label && (

@@ -1,8 +1,9 @@
-import { Link, useLocation } from "react-router-dom";
-import { Menu, User, } from 'lucide-react';
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, User, } from "lucide-react";
 import ModalLogin from "../Modals/ModalLogin";
 import { useState } from "react";
 import MobileMenu from "../Mobile/Menu";
+import { userStore } from "../../store/userStore";
 
 const navigationLinks = [
   {
@@ -21,8 +22,10 @@ const navigationLinks = [
 
 export function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { userAccountData } = userStore();
 
   const handleOpenMobileMenu = () => {
     setIsMobileMenuOpen(true);
@@ -40,6 +43,14 @@ export function Header() {
     setIsModalOpen(false);
   };
 
+  const handleUserButtonClick = () => {
+    if (isLoggedIn) {
+      navigate('/user');
+    } else {
+      handleOpenModal();
+    }
+  };
+
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -53,6 +64,8 @@ export function Header() {
     return `${className} ${activeClasses}`;
   };
 
+  const isLoggedIn = userAccountData?.access_token;
+
   return (
     <>
       <header className="bg-white shadow-sm border-b">
@@ -65,6 +78,7 @@ export function Header() {
                 </h1>
               </Link>
             </div>
+            
             <nav className="hidden md:flex items-center space-x-8">
               {navigationLinks.map((link) => (
                 <Link 
@@ -76,20 +90,21 @@ export function Header() {
                 </Link>
               ))}
             </nav>
+
             <div className="hidden lg:flex space-x-4 items-center">
               <button 
-                onClick={handleOpenModal}
-                className="border border-gray-300 bg-neutral-09 text-black flex flex-row items-center gap-2 transition-colors px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+                onClick={handleUserButtonClick}
+                className="border border-neutral-10 bg-neutral-09 text-black flex flex-row items-center gap-2 transition-colors px-3 py-2 rounded-md text-sm font-medium hover:bg-neutral-11"
               >
                 <User className="w-4 h-4" />
-                <span>Login</span>
+                <span>{isLoggedIn ? 'Usuário' : 'Login'}</span>
               </button>
             </div>
 
             <div className="lg:hidden">
               <button
                 onClick={handleOpenMobileMenu}
-                className="text-gray-600 hover:text-primary transition-colors p-2"
+                className="text-neutral-12 hover:text-primary transition-colors p-2"
               >
                 <Menu className="w-6 h-6" />
               </button>

@@ -27,7 +27,7 @@ export default function TabBar({
 
     return (
         <div className={className}>
-            <div className="flex bg-gray-200 rounded-full p-1">
+            <div className="flex bg-neutral-17 rounded-full p-1">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}

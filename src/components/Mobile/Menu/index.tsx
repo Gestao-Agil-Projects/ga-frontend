@@ -1,6 +1,6 @@
-import { Link, useLocation } from "react-router-dom";
-import { User, X } from 'lucide-react';
-import { useState } from 'react';
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { User, X } from "lucide-react";
+import { userStore } from "../../../store/userStore";
 
 interface MobileMenuProps {
     isOpen: boolean;
@@ -10,7 +10,7 @@ interface MobileMenuProps {
 
 const navigationLinks = [
     {
-        to: "/",
+        to: "/professionals",
         label: "Profissionais"
     },
     {
@@ -25,6 +25,8 @@ const navigationLinks = [
 
 export default function MobileMenu({ isOpen, onClose, onLoginClick }: MobileMenuProps) {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { userAccountData, setUser, setUserAccountData } = userStore();
 
     const isActive = (path: string) => {
         return location.pathname === path;
@@ -39,6 +41,23 @@ export default function MobileMenu({ isOpen, onClose, onLoginClick }: MobileMenu
         return `${baseClasses} ${activeClasses}`;
     };
 
+    const handleUserClick = () => {
+        if (isLoggedIn) {
+            navigate('/user');
+        } else {
+            onLoginClick();
+        }
+        onClose();
+    };
+
+    const handleLogout = () => {
+        setUser(null);
+        setUserAccountData(null);
+        onClose();
+    };
+
+    const isLoggedIn = userAccountData?.access_token;
+
     if (!isOpen) return null;
 
     return (
@@ -50,12 +69,12 @@ export default function MobileMenu({ isOpen, onClose, onLoginClick }: MobileMenu
             
             <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-xl z-50 lg:hidden transform transition-transform duration-300 ease-in-out">
                 <div className="flex justify-between items-center p-4 border-b">
-                    <h2 className="text-lg font-semibold text-gray-800">
+                    <h2 className="text-lg font-semibold text-neutral-18">
                         Menu
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-gray-400 hover:text-neutral-12 transition-colors"
                     >
                         <X className="w-6 h-6" />
                     </button>
@@ -74,17 +93,36 @@ export default function MobileMenu({ isOpen, onClose, onLoginClick }: MobileMenu
                     ))}
                 </nav>
 
-                <div className="p-4 border-t">
-                    <button 
-                        onClick={() => {
-                            onLoginClick();
-                            onClose();
-                        }}
-                        className="w-full border border-gray-300 bg-white text-black flex flex-row items-center justify-center gap-2 transition-colors px-4 py-3 rounded-md text-sm font-medium hover:bg-gray-50"
-                    >
-                        <User className="w-4 h-4" />
-                        <span>Login</span>
-                    </button>
+                <div className="p-4 border-t space-y-3">
+                    {isLoggedIn ? (
+                        <>
+                            <button 
+                                onClick={() => {
+                                    navigate('/user');
+                                    onClose();
+                                }}
+                                className="w-full border border-neutral-10 bg-white text-black flex flex-row items-center justify-center gap-2 transition-colors px-4 py-3 rounded-md text-sm font-medium hover:bg-neutral-11"
+                            >
+                                <User className="w-4 h-4" />
+                                <span>Meu Perfil</span>
+                            </button>
+                            
+                            <button 
+                                onClick={handleLogout}
+                                className="w-full border border-neutral-25 bg-white text-error-11 flex flex-row items-center justify-center gap-2 transition-colors px-4 py-3 rounded-md text-sm font-medium hover:bg-neutral-24"
+                            >
+                                <span>Sair</span>
+                            </button>
+                        </>
+                    ) : (
+                        <button 
+                            onClick={handleUserClick}
+                            className="w-full border border-neutral-10 bg-white text-black flex flex-row items-center justify-center gap-2 transition-colors px-4 py-3 rounded-md text-sm font-medium hover:bg-neutral-11"
+                        >
+                            <User className="w-4 h-4" />
+                            <span>Login</span>
+                        </button>
+                    )}
                 </div>
             </div>
         </>
