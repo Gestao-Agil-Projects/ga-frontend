@@ -1,11 +1,15 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, User, } from "lucide-react";
+import { Menu, User, LogOut } from "lucide-react";
 import ModalLogin from "../Modals/ModalLogin";
 import { useState } from "react";
 import MobileMenu from "../Mobile/Menu";
 import { userStore } from "../../store/userStore";
 
 const navigationLinks = [
+  {
+    to: "/",
+    label: "Início"
+  },
   {
     to: "/professionals",
     label: "Profissionais"
@@ -25,7 +29,7 @@ export function Header() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { userAccountData } = userStore();
+  const { user, userAccountData, setUser, setUserAccountData } = userStore();
 
   const handleOpenMobileMenu = () => {
     setIsMobileMenuOpen(true);
@@ -51,20 +55,27 @@ export function Header() {
     }
   };
 
+  const handleLogout = () => {
+    setUser(null);
+    setUserAccountData(null);
+    navigate('/');
+  };
+
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
   const linkClasses = (path: string) => {
-    const className = "text-gray-600 hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium";
+    const baseClasses = "text-gray-600 hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium";
     const activeClasses = isActive(path)
-      ? "text-primary bg-gray-100" 
-      : "text-gray-700 hover:text-primary hover:bg-gray-100";
+      ? "text-primary" 
+      : "text-gray-700 hover:text-primary";
     
-    return `${className} ${activeClasses}`;
+    return `${baseClasses} ${activeClasses}`;
   };
 
   const isLoggedIn = userAccountData?.access_token;
+  const isAdmin = userAccountData?.is_admin;
 
   return (
     <>
@@ -72,10 +83,8 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link to="/">
-                <h1 className="text-primary">
-                  Calm Mind
-                </h1>
+              <Link to="/" className="text-2xl font-bold text-blue-600">
+                Calm Mind
               </Link>
             </div>
             
@@ -92,19 +101,40 @@ export function Header() {
             </nav>
 
             <div className="hidden lg:flex space-x-4 items-center">
-              <button 
-                onClick={handleUserButtonClick}
-                className="border border-neutral-10 bg-neutral-09 text-black flex flex-row items-center gap-2 transition-colors px-3 py-2 rounded-md text-sm font-medium hover:bg-neutral-11"
-              >
-                <User className="w-4 h-4" />
-                <span>{isLoggedIn ? 'Usuário' : 'Login'}</span>
-              </button>
+              {isLoggedIn ? (
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-5 h-5 text-blue-600" />
+                    <button 
+                      onClick={handleUserButtonClick}
+                      className="text-gray-700 hover:text-blue-600 font-medium"
+                    >
+                      {user?.full_name || userAccountData?.email || 'João Silva'}
+                    </button>
+                  </div>
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md text-sm font-medium transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sair</span>
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={handleOpenModal}
+                  className="bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center gap-2 transition-colors px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Login</span>
+                </button>
+              )}
             </div>
 
             <div className="lg:hidden">
               <button
                 onClick={handleOpenMobileMenu}
-                className="text-neutral-12 hover:text-primary transition-colors p-2"
+                className="text-gray-600 hover:text-primary transition-colors p-2"
               >
                 <Menu className="w-6 h-6" />
               </button>

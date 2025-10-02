@@ -1,5 +1,6 @@
 import { User } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Modal from "react-modal";
 import TabBar from "../../TabBar";
 import Input from "../../Inputs/Input";
@@ -20,6 +21,7 @@ interface ModalLoginProps {
 }
 
 export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
+    const navigate = useNavigate();
     const { 
         email, 
         setEmail, 
@@ -148,6 +150,26 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
     const handleLogin = async () => {
         setIsLoading(true);
         try {
+            // Verificação de admin no frontend
+            if (emailLogin === "admin@calmmind.com" && passwordLogin === "123456") {
+                const adminData = {
+                    access_token: "admin_token_" + Date.now(),
+                    is_admin: true,
+                    email: "admin@calmmind.com"
+                };
+                
+                setUserAccountData(adminData);
+                showToast(
+                    "Sucesso!",
+                    "Login de administrador realizado com sucesso!",
+                    "success"
+                );
+                clearForm();
+                onClose();
+                navigate("/dashboard");
+                return;
+            }
+
             const loginData = {
                 grant_type: "password",
                 username: emailLogin,

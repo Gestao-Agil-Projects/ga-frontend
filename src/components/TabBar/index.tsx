@@ -27,12 +27,20 @@ export default function TabBar({
 
     return (
         <div className={className}>
-            <div className="flex bg-neutral-17 rounded-full p-1">
+            <div className="relative flex bg-neutral-17 rounded-full p-1">
+                <div 
+                    className={`absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-in-out z-0 ${indicatorClassName}`}
+                    style={{
+                        left: `${activeIndex * tabWidth + 0.5}%`,
+                        width: `${tabWidth - 1}%`
+                    }}
+                />
+                
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`relative flex-1 py-1 px-4 text-sm font-medium transition-all duration-300 z-10 flex items-center justify-center ${
+                        className={`relative flex-1 py-1 px-4 text-sm font-medium transition-all duration-300 z-10 flex items-center justify-center rounded-full ${
                             activeTab === tab.id
                                 ? activeTabClassName
                                 : inactiveTabClassName
@@ -42,15 +50,6 @@ export default function TabBar({
                     </button>
                 ))}
             </div>
-            
-            {/* Indicador Animado */}
-            <div 
-                className={`absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-in-out z-0 ${indicatorClassName}`}
-                style={{
-                    left: `${activeIndex * tabWidth + 0.5}%`,
-                    right: `${100 - (activeIndex + 1) * tabWidth + 0.5}%`
-                }}
-            />
         </div>
     );
 }
