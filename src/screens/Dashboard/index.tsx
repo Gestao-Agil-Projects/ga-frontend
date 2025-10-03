@@ -3,7 +3,7 @@ import { Users, UserCheck, Calendar, UserX, Settings } from "lucide-react";
 import { Header } from "../../components/Header";
 import { AppointmentManagement } from "../../components/AppointmentManagement";
 import { ManagePsychologists } from "../../components/ManagePsychologists";
-import { CardDashboard } from "../../components/CardDashboard";
+import { CardDashboard } from "../../components/Cards/CardDashboard";
 import TabBar from "../../components/TabBar";
 
 export function Dashboard() {

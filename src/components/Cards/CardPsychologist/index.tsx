@@ -1,5 +1,5 @@
 import { Edit, Lock, Unlock, Trash2 } from "lucide-react";
-import { type Professional } from "../../data/professionals";
+import { type Professional } from "../../../data/professionals";
 
 interface CardPsychologistsProps {
     professional: Professional;
@@ -11,7 +11,7 @@ interface CardPsychologistsProps {
     onDelete: (id: string) => void;
 }
 
-export function CardPsychologists({ 
+export function CardPsychologist({ 
     professional, 
     appointmentsToday, 
     specialty, 

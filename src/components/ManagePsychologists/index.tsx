@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { CardPsychologists } from "../CardPsychologists";
+import { CardPsychologist } from "../Cards/CardPsychologist";
 import { professionals } from "../../data/professionals";
 
 export function ManagePsychologists() {
@@ -56,8 +56,8 @@ export function ManagePsychologists() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {professionals.map(professional => (
-                    <CardPsychologists
+        {professionals.map(professional => (
+          <CardPsychologist
                         key={professional.id}
                         professional={professional}
                         appointmentsToday={professionalData[professional.id as keyof typeof professionalData]?.appointmentsToday || 0}
