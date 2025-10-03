@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import Modal from "react-modal";
 import { professionals } from "../../../data/professionals";
 import { type Appointment } from "../../../data/appointments";
+import ButtonClose from "../../Buttons/ButtonClose";
 
 interface ModalAppointmentProps {
     isOpen: boolean;
@@ -27,12 +28,7 @@ export function ModalAppointment({
                 <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
                     <div className="flex justify-between items-center p-4 border-b">
                         <h2 className="text-base font-semibold">Detalhes do Agendamento</h2>
-                        <button
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                        <ButtonClose onClose={onClose} />
                     </div>
                 
                     <div className="p-4 space-y-3">
