@@ -1,8 +1,12 @@
-import { X } from "lucide-react";
 import Modal from "react-modal";
-import { professionals } from "../../../data/professionals";
 import { type Appointment } from "../../../data/appointments";
 import ButtonClose from "../../Buttons/ButtonClose";
+
+const professionals = [
+    { id: "1", name: "DRA. ANA SILVA", color: "bg-blue-500" },
+    { id: "2", name: "DR. CARLOS MENDES", color: "bg-gray-500" },
+    { id: "3", name: "DRA. MARIANA COSTA", color: "bg-green-500" }
+];
 
 interface ModalAppointmentProps {
     isOpen: boolean;

@@ -21,7 +21,7 @@ const createApiInstance = (
     };
 
     const axiosInstance = axios.create({
-        baseURL,
+        baseURL: baseURL || undefined,
         headers: { ...containAuthentication(), ...ContentHeader },
     });
 
@@ -67,4 +67,10 @@ const createApiInstance = (
 };
 
 export const apiUser = (authorization?: string | null) =>
+    createApiInstance(authorization, EnvConfig.BASE_URL_API, null);
+
+export const apiProfessional = (authorization?: string | null) =>
+    createApiInstance(authorization, EnvConfig.BASE_URL_API, null);
+
+export const apiSpeciality = (authorization?: string | null) =>
     createApiInstance(authorization, EnvConfig.BASE_URL_API, null);

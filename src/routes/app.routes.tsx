@@ -10,7 +10,7 @@ import { userStore } from "../store/userStore";
 function RootRoute() {
   const { userAccountData } = userStore();
 
-  if (userAccountData?.is_admin) {
+  if (userAccountData?.is_admin || (userAccountData as any)?.role === "admin" || (userAccountData as any)?.is_superuser) {
     return <Dashboard />;
   }
 

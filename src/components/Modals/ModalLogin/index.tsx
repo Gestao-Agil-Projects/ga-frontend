@@ -12,6 +12,7 @@ import { userStore } from "../../../store/userStore";
 import { formatCPF, cleanCPF } from "../../../utils/formatCpf";
 import { formatPhone, cleanPhone } from "../../../utils/formatPhone";
 import { useToast } from "../../../contexts/ToastContext";
+import { EnvConfig } from "../../../config/env.config";
 
 Modal.setAppElement("#root");
 
@@ -91,16 +92,19 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
 
             const response = await userService.postCreateUser(userData);
 
-            if (response.status === 201) {
+            if (response && response.status === 201) {
                 setUser(response.data);
                 console.log("user", user);
                 console.log("✅ Usuário criado:", response.data);
 
-                // Realizar login automático após cadastro bem-sucedido
                 try {
                     const loginData = {
-                        username: email.trim(), // Usar o email do cadastro
-                        password: password.trim(), // Usar a senha do cadastro
+                        grant_type: "password",
+                        username: email.trim(),
+                        password: password.trim(),
+                        scope: "string",
+                        client_id: "string",
+                        client_secret: "string"
                     };
 
                     console.log("🔐 Dados de login:", loginData);
@@ -109,9 +113,7 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                     
                     if (loginResponse.status === 200) {
                         setUserAccountData(loginResponse.data);
-                        console.log("userAccountData", userAccountData);
-                        console.log("✅ Login realizado com sucesso:", loginResponse.data);
-                        
+
                         showToast(
                             "Sucesso!",
                             "Conta criada e login realizado com sucesso! Bem-vindo ao Calm Mind.",
@@ -119,7 +121,6 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                         );
                     }
                 } catch (loginError: any) {
-                    console.error("❌ Erro no login automático:", loginError);
                     showToast(
                         "Sucesso!",
                         "Conta criada com sucesso! Faça login para continuar.",
@@ -132,8 +133,6 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
             }
 
         } catch (error: any) {
-            console.error("❌ Erro no cadastro:", error);
-            
             showToast(
                 "Erro!",
                 error.message || "Erro ao criar conta. Tente novamente.",
@@ -150,24 +149,49 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
     const handleLogin = async () => {
         setIsLoading(true);
         try {
-            // Verificação de admin no frontend
-            if (emailLogin === "admin@calmmind.com" && passwordLogin === "123456") {
-                const adminData = {
-                    access_token: "admin_token_" + Date.now(),
-                    is_admin: true,
-                    email: "admin@calmmind.com"
+            if (emailLogin === EnvConfig.ADMIN_EMAIL && passwordLogin === EnvConfig.ADMIN_PASSWORD) {
+
+                const loginData = {
+                    grant_type: "password",
+                    username: emailLogin,
+                    password: passwordLogin,
+                    scope: "string",
+                    client_id: "string",
+                    client_secret: "string"
                 };
-                
-                setUserAccountData(adminData);
-                showToast(
-                    "Sucesso!",
-                    "Login de administrador realizado com sucesso!",
-                    "success"
-                );
-                clearForm();
-                onClose();
-                navigate("/dashboard");
-                return;
+
+                try {
+                    const response = await userService.postLogin(loginData);
+                    
+                    if (response.status === 200) {
+                        const adminData = {
+                            ...response.data,
+                            is_admin: true,
+                            email: EnvConfig.ADMIN_EMAIL,
+                            role: "admin"
+                        };
+                        
+                        setUserAccountData(adminData);
+                        
+                        showToast(
+                            "Sucesso!",
+                            "Login de administrador realizado com sucesso!",
+                            "success"
+                        );
+                        
+                        clearForm();
+                        onClose();
+                        navigate("/dashboard");
+                        return;
+                    }
+                } catch (adminLoginError: any) {
+                    showToast(
+                        "Erro!",
+                        "Erro ao fazer login de administrador. Verifique as credenciais.",
+                        "error"
+                    );
+                    return;
+                }
             }
 
             const loginData = {
@@ -179,8 +203,6 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                 client_secret: "string"
             };
 
-            console.log("🔐 Dados de login:", loginData);
-
             const response = await userService.postLogin(loginData);
             
             if (response.status === 200) {
@@ -191,13 +213,10 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                 );
                 clearForm();
                 setUserAccountData(response.data);
-                console.log("userAccountData", userAccountData);
-                console.log("✅ Login realizado:", response.data);
             }
 
             onClose();
         } catch (error: any) {
-            console.error("❌ Erro no login:", error);
             showToast(
                 "Erro!",
                 "Erro ao fazer login. Tente novamente.",

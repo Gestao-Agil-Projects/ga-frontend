@@ -1,10 +1,14 @@
 import { Lock } from "lucide-react";
 
-
-
 import { timeSlots } from "../../data/timeSlots";
-import { professionals } from "../../data/professionals";
 import { mockAppointments } from "../../data/appointments";
+
+// Mock data temporário - será substituído por dados reais
+const professionals = [
+    { id: "1", name: "DRA. ANA SILVA", color: "bg-blue-500" },
+    { id: "2", name: "DR. CARLOS MENDES", color: "bg-gray-500" },
+    { id: "3", name: "DRA. MARIANA COSTA", color: "bg-green-500" }
+];
 
 interface ScheduleGridProps {
   selectedProfessional: string;

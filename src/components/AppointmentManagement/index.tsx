@@ -3,8 +3,14 @@ import { Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import DatePicker from "../Calendar";
 import { ScheduleGrid } from "../ScheduledGrid";
 import { ModalAppointment } from "../Modals/ModalAppointment";
-import { professionals } from "../../data/professionals";
 import { mockAppointments } from "../../data/appointments";
+
+// Mock data temporário - será substituído por dados reais
+const professionals = [
+    { id: "1", name: "DRA. ANA SILVA", color: "bg-blue-500" },
+    { id: "2", name: "DR. CARLOS MENDES", color: "bg-gray-500" },
+    { id: "3", name: "DRA. MARIANA COSTA", color: "bg-green-500" }
+];
 
 export function AppointmentManagement() {
   const [selectedProfessional, setSelectedProfessional] = useState<string>("all");

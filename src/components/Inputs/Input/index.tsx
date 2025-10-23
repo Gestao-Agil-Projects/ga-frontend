@@ -9,6 +9,7 @@ interface InputProps {
     placeholder: string;
     label?: string;
     required?: boolean;
+    disabled?: boolean;
     className?: string;
     inputDate?: boolean;
     onDateChange?: (date: Date | null) => void;
@@ -21,6 +22,7 @@ export default function Input({
     placeholder, 
     label,
     required = false,
+    disabled = false,
     className = "w-full px-4 py-1 border border-neutral-10 rounded-lg focus:outline-none bg-white placeholder:text-sm",
     inputDate = false,
     onDateChange
@@ -51,6 +53,7 @@ export default function Input({
                         placeholder={placeholder}
                         className={`${className} pr-10`}
                         maxLength={10}
+                        disabled={disabled}
                     />
                     <Calendar 
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-13 cursor-pointer"
@@ -82,6 +85,7 @@ export default function Input({
                 onChange={onChange}
                 placeholder={placeholder}
                 className={className}
+                disabled={disabled}
             />
         </div>
     );
