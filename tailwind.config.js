@@ -73,6 +73,24 @@ module.exports = {
         // Use Open Sans as the default sans font (Figma uses Open Sans)
         sans: ["'Open Sans'", 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial'],
       },
+      borderRadius: {
+        // design-specific radii
+        'card': '12px',
+        'lg': '10px',
+        'pill': '9999px'
+      },
+      boxShadow: {
+        // softer card shadow and a slightly stronger elevated shadow
+        'card': '0 6px 18px rgba(15, 23, 42, 0.06)',
+        'elevated': '0 12px 30px rgba(15, 23, 42, 0.08)'
+      },
+      colors: {
+        // Additional primary shades from Figma palette
+        'primary-100': '#DFF2FF',
+        'primary-200': '#BEE8FF',
+        'primary-400': '#4EA8F7',
+        'primary-700': '#1F5FC9'
+      },
     },
   },
   plugins: [],
