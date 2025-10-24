@@ -67,14 +67,14 @@ export default function MobileMenu({ isOpen, onClose, onLoginClick }: MobileMenu
                 onClick={onClose}
             />
             
-            <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-xl z-50 lg:hidden transform transition-transform duration-300 ease-in-out">
-                <div className="flex justify-between items-center p-4 border-b">
-                    <h2 className="text-lg font-semibold text-neutral-18">
+            <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-elevated z-50 lg:hidden transform transition-transform duration-300 ease-in-out">
+                <div className="flex justify-between items-center p-4 border-b border-neutral-17">
+                    <h2 className="text-lg font-semibold text-neutral-22">
                         Menu
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-neutral-12 transition-colors"
+                        className="text-neutral-19 hover:text-neutral-22 transition-colors"
                     >
                         <X className="w-6 h-6" />
                     </button>
@@ -120,7 +120,7 @@ export default function MobileMenu({ isOpen, onClose, onLoginClick }: MobileMenu
                         })}
                 </nav>
 
-                <div className="p-4 border-t space-y-3">
+                <div className="p-4 border-t border-neutral-17 space-y-3">
                     {isLoggedIn ? (
                         <>
                             <button 
@@ -128,7 +128,7 @@ export default function MobileMenu({ isOpen, onClose, onLoginClick }: MobileMenu
                                     navigate('/user');
                                     onClose();
                                 }}
-                                className="w-full border border-neutral-10 bg-white text-black flex flex-row items-center justify-center gap-2 transition-colors px-4 py-3 rounded-md text-sm font-medium hover:bg-neutral-11"
+                                className="w-full border border-neutral-11 bg-white text-neutral-22 flex flex-row items-center justify-center gap-2 transition-colors px-4 py-3 rounded-md text-sm font-medium hover:bg-neutral-10"
                             >
                                 <User className="w-4 h-4" />
                                 <span>Meu Perfil</span>
