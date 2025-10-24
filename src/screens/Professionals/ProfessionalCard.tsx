@@ -1,4 +1,5 @@
 import type { Professional } from './mockProfessionals';
+import { Calendar } from 'lucide-react';
 
 export default function ProfessionalCard({ professional }: { professional: Professional }) {
   return (
@@ -32,7 +33,10 @@ export default function ProfessionalCard({ professional }: { professional: Profe
       </div>
 
       <div className="mt-6">
-        <button className="w-full inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4" type="button">📅 Agendar Consulta</button>
+        <button className="w-full inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4" type="button" aria-label={`Agendar consulta com ${professional.name}`}>
+          <Calendar className="w-4 h-4" />
+          <span>Agendar Consulta</span>
+        </button>
       </div>
     </article>
   );

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
 import ProfessionalCard from './ProfessionalCard.tsx';
 import { professionals as mockProfessionals } from './mockProfessionals.ts';
 import type { Professional } from './mockProfessionals.ts';
@@ -47,7 +48,7 @@ export function Professionals() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
-                            <span className="absolute inset-y-0 left-3 flex items-center text-slate-400">🔍</span>
+                            <span className="absolute inset-y-0 left-3 flex items-center text-slate-400"><Search className="w-4 h-4" /></span>
                         </label>
                     </div>
 

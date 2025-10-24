@@ -1,4 +1,4 @@
-import { Heart, Shield, Calendar } from "lucide-react";
+import { Heart, Shield, Calendar, Users } from "lucide-react";
 import { CardHome } from "../../Cards/CardHome";
 import { useNavigate } from "react-router-dom";
 
@@ -28,12 +28,20 @@ export function InitialSection() {
                     </p>
 
                     <div className="flex items-center justify-center gap-4">
-                        <button onClick={handleViewProfessionals} className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-md shadow-md">
-                            <span>👥</span>
+                        <button
+                            onClick={handleViewProfessionals}
+                            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-md shadow-md"
+                            aria-label="Ver Profissionais"
+                        >
+                            <Users className="w-5 h-5" />
                             <span>Ver Profissionais</span>
                         </button>
-                        <button onClick={() => navigate('/professionals')} className="inline-flex items-center gap-2 bg-white border border-slate-200 text-gray-700 px-5 py-3 rounded-md hover:shadow-sm">
-                            <span>📅</span>
+                        <button
+                            onClick={() => navigate('/professionals')}
+                            className="inline-flex items-center gap-2 bg-white border border-slate-200 text-gray-700 px-5 py-3 rounded-md hover:shadow-sm"
+                            aria-label="Agendar Consulta"
+                        >
+                            <Calendar className="w-5 h-5" />
                             <span>Agendar Consulta</span>
                         </button>
                     </div>
