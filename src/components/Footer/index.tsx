@@ -1,3 +1,6 @@
+import logo from '../../assets'
+
+
 export function Footer() {
     return (
         <footer className="bg-white py-12 px-4">
