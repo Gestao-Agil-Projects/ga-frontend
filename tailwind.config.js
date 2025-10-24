@@ -9,61 +9,33 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Primary tokens: keep `primary` linked to EnvConfig but add useful shades from Figma
+        // Exact palette from style guide (image)
         "primary": EnvConfig.PRIMARY_COLOR,
-        "primary-50": "#EEF6FF",
-        "primary-300": "#7FB7F0",
-        "primary-600": "#2563EB",
-        "secondary": EnvConfig.SECONDARY_COLOR,
-        "white": "#FFFFFF",
+        // Main teal family
+        "primary-50": "#79D4DD",
+        "primary-100": "#79D3DB",
+        "primary-200": "#7DD4DC",
+        "primary-300": "#3DB0C5",
+        "primary-400": "#018DAE",
+        "primary-600": "#01748A",
+        "primary-700": "#015D6F",
+
+        // Neutrals / supporting
         "black": "#000000",
-        "black-opacity": "#202020",
+        "neutral-18": "#545454",
+        "neutral-04": "#EBEBEB",
+        "white": "#FFFFFF",
+
+        // Small helpers kept from previous tokens
         "neutral-03": "#F9F9F9",
-        "neutral-04": "#F0F0F0",
         "neutral-05": "#D9D9D9",
         "neutral-06": "#B1B1B1",
         "neutral-07": "#656565",
-        "neutral-08": "#4E4E4E",
-
-        "neutral-09": "#f0ece6",
-        "neutral-10": "#d1d5db ",
-        "neutral-11": "#f9fafb ",
-        "neutral-12": "#4b5563  ",
-        "neutral-13": "#9ca3af",
-        "neutral-14": "#bfdbfe",
-        "neutral-15": "#60a5fa",
-        "neutral-16": "#f3f4f6",
-        "neutral-17": "#e5e7eb",
-        "neutral-18": "#1f2937",
-        "neutral-19": "#6b7280",
-        "neutral-20": "#2563eb",
-        "neutral-21": "#3b82f6",
-        "neutral-22": "#374151",
-        "neutral-23": "#eff6ff",
-        "neutral-24": "#fef2f2",
-        "neutral-25": "#fca5a5",
-        "neutral-26": "#2B7FFF",
-        "neutral-27": "#EEF6FF",
-        "neutral-28": "#111827",
 
         "error-full-opacity": "#DA1E28",
         "error": "#FD2148",
-        "error-80": "#E04951",
-        "error-30": "#F4BBBE",
-        "error-10": "#FBE8E9",
-        "error-11": "#dc2626",
 
         "success": "#24A148",
-        "success-45": "#9CD5AD",
-        "success-30": "#BDE3C8",
-        "success-10": "#E9F6ED",
-        "success-11": "#EFFDF4",
-
-        "warning-70": "#F1C21B",
-        "warning-40": "#F9E7A4",
-        "warning-30": "#FBEDBB",
-        "warning-10": "#FEF9E8",
-        "warning-11": "#FEFCE8",
 
         "overlay": "rgba(0, 0, 0, 0.5)",
         "white-transparent": "rgba(255, 255, 255, 0.96)",
@@ -84,13 +56,7 @@ module.exports = {
         'card': '0 6px 18px rgba(15, 23, 42, 0.06)',
         'elevated': '0 12px 30px rgba(15, 23, 42, 0.08)'
       },
-      colors: {
-        // Additional primary shades from Figma palette
-        'primary-100': '#DFF2FF',
-        'primary-200': '#BEE8FF',
-        'primary-400': '#4EA8F7',
-        'primary-700': '#1F5FC9'
-      },
+      // NOTE: additional colors consolidated above
     },
   },
   plugins: [],

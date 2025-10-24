@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import type { Professional } from './mockProfessionals';
 import { Calendar } from 'lucide-react';
+import ModalAppointment from '../../components/Modals/ModalAppointment';
 
 export default function ProfessionalCard({ professional }: { professional: Professional }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
-    <article className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 flex flex-col h-full">
+  <article className="bg-white rounded-lg shadow-md border border-gray-100 p-6 flex flex-col h-full">
       <header className="flex items-start gap-4">
         <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
           {professional.avatarUrl ? (
@@ -42,11 +45,24 @@ export default function ProfessionalCard({ professional }: { professional: Profe
       </div>
 
       <div className="mt-6">
-        <button className="w-full inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary-300" type="button" aria-label={`Agendar consulta com ${professional.name}`}>
+        <button 
+          className="w-full inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg py-3 px-4 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-300" 
+          type="button" 
+          aria-label={`Agendar consulta com ${professional.name}`}
+          onClick={() => setIsModalOpen(true)}
+        >
           <Calendar className="w-4 h-4" />
           <span>Agendar Consulta</span>
         </button>
       </div>
+
+      {/* Modal de Agendamento */}
+      <ModalAppointment
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        professionalName={professional.name}
+        specialty={professional.specialties[0]}
+      />
     </article>
   );
 }

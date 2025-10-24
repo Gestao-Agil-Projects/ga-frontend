@@ -229,7 +229,7 @@ export default function ModalCreateProfessional({
             overlayClassName="modal-overlay"
             contentLabel="Modal de Gerenciar Profissional"
         >
-            <div className="bg-neutral-09 rounded-lg shadow-xl w-[380px] lg:w-[600px] mx-4 max-h-[90vh] flex flex-col">
+            <div className="bg-neutral-09 rounded-card shadow-card w-full max-w-[600px] mx-4 max-h-[90vh] flex flex-col">
                 <div className="flex justify-between items-center px-6 py-4">
                     <div className="flex flex-row items-center gap-2">
                         <UserPlus className="w-5 h-5 text-primary" />

@@ -17,20 +17,20 @@ export function InitialSection() {
     };
 
     return (
-        <div className="bg-gradient-to-br from-primary-50 to-white flex flex-col items-center justify-center py-28 px-4">
+    <div className="bg-gradient-to-b from-primary-600 to-primary-400 flex flex-col items-center justify-center py-28 px-4">
             <div className="max-w-6xl mx-auto w-full">
                 <div className="text-center mb-14">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary mb-6 leading-tight">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight">
                         Sua mente em paz, nossa prioridade
                     </h1>
-                    <p className="text-base md:text-lg text-neutral-19 mb-8 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-base md:text-lg text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
                         Encontre o psicólogo ideal para sua jornada de bem-estar mental. Profissionais qualificados prontos para te acompanhar.
                     </p>
 
                     <div className="flex items-center justify-center gap-4">
                         <button
                             onClick={handleViewProfessionals}
-                            className="inline-flex items-center gap-3 bg-primary-600 hover:bg-primary-600/90 text-white px-6 py-3 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-primary-300"
+                            className="inline-flex items-center gap-3 bg-white text-primary-700 px-6 py-3 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-primary-300"
                             aria-label="Ver Profissionais"
                         >
                             <Users className="w-5 h-5" />
@@ -38,7 +38,7 @@ export function InitialSection() {
                         </button>
                         <button
                             onClick={() => navigate('/professionals')}
-                            className="inline-flex items-center gap-3 bg-white border border-slate-200 text-gray-700 px-5 py-3 rounded-lg hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
+                            className="inline-flex items-center gap-3 bg-transparent border border-white text-white px-5 py-3 rounded-lg hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
                             aria-label="Agendar Consulta"
                         >
                             <Calendar className="w-5 h-5" />
