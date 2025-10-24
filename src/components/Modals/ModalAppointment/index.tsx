@@ -1,36 +1,89 @@
-import { useState } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import Modal from "react-modal";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { useToast } from "../../../hooks/useToast";
+import { userStore } from "../../../store/userStore";
+import { appointmentService } from "../../../services/Appointment/appointment.service";
+import { AvailableTimeSlot } from "../../../services/Appointment/types";
 
 interface ModalAppointmentProps {
     isOpen: boolean;
     onClose: () => void;
     professionalName: string;
     specialty: string;
+    professionalId: string;
 }
 
-interface TimeSlot {
-    time: string;
-    available: boolean;
-}
+Modal.setAppElement("#root");
 
 export default function ModalAppointment({
     isOpen,
     onClose,
     professionalName,
-    specialty
+    specialty,
+    professionalId
 }: ModalAppointmentProps) {
+    const { showToast } = useToast();
+    const { userAccountData } = userStore();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
+    const [availableTimeSlots, setAvailableTimeSlots] = useState<AvailableTimeSlot[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const availableTimes: TimeSlot[] = [
-        { time: "09:00", available: true },
-        { time: "10:00", available: true },
-        { time: "14:00", available: true },
-        { time: "15:00", available: true },
-        { time: "16:00", available: true },
-    ];
+    // Fetch available time slots when date is selected
+    useEffect(() => {
+        async function fetchAvailableSlots() {
+            if (!selectedDate || !userAccountData?.access_token) return;
+
+            try {
+                setIsLoading(true);
+                const formattedDate = selectedDate.toISOString().split('T')[0];
+                const response = await appointmentService.getAvailableTimeSlots(
+                    professionalId,
+                    formattedDate,
+                    userAccountData.access_token
+                );
+                setAvailableTimeSlots(response.data);
+            } catch (error) {
+                console.error('Error fetching available slots:', error);
+                showToast('Erro', 'Não foi possível carregar os horários disponíveis', 'error');
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchAvailableSlots();
+    }, [selectedDate, professionalId, userAccountData?.access_token, showToast]);
+
+    async function handleSubmit(event: FormEvent) {
+        event.preventDefault();
+        if (!selectedDate || !selectedTime || !userAccountData?.access_token) return;
+
+        try {
+            setIsSubmitting(true);
+            const formattedDate = selectedDate.toISOString().split('T')[0];
+            await appointmentService.createAppointment(
+                {
+                    userId: userAccountData.user.id,
+                    professionalId,
+                    appointmentDate: formattedDate,
+                    appointmentTime: selectedTime,
+                    status: 'SCHEDULED'
+                },
+                userAccountData.access_token
+            );
+
+            showToast('Sucesso', 'Consulta agendada com sucesso!', 'success');
+            onClose();
+        } catch (error) {
+            console.error('Error creating appointment:', error);
+            showToast('Erro', 'Não foi possível agendar a consulta', 'error');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
 
     const handlePreviousMonth = () => {
         setCurrentMonth(prevMonth => {
@@ -154,35 +207,50 @@ export default function ModalAppointment({
                             <p className="text-[13px] font-[600] text-[#000] mb-4">
                                 Horários para {selectedDate.toLocaleDateString()}
                             </p>
-                            <div className="grid grid-cols-3 gap-2">
-                                {availableTimes.map((slot) => (
-                                    <button
-                                        key={slot.time}
-                                        onClick={() => setSelectedTime(slot.time)}
-                                        disabled={!slot.available}
-                                        className={`
-                                            py-2 px-4 rounded-lg text-[13px] font-[600]
-                                            ${selectedTime === slot.time
-                                                ? 'bg-[#018DAE] text-white'
-                                                : slot.available
-                                                    ? 'bg-[#EBEBEB] text-[#000] hover:bg-[#018DAE] hover:text-white'
-                                                    : 'bg-[#EBEBEB] text-[#545454] opacity-50 cursor-not-allowed'
-                                            }
-                                        `}
-                                    >
-                                        {slot.time}
-                                    </button>
-                                ))}
-                            </div>
+                            {isLoading ? (
+                                <div className="flex justify-center items-center py-8">
+                                    <Loader2 className="w-6 h-6 text-[#018DAE] animate-spin" />
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-3 gap-2">
+                                    {availableTimeSlots.map((slot) => (
+                                        <button
+                                            key={slot.time}
+                                            onClick={() => setSelectedTime(slot.time)}
+                                            disabled={!slot.available}
+                                            className={`
+                                                py-2 px-4 rounded-lg text-[13px] font-[600]
+                                                ${selectedTime === slot.time
+                                                    ? 'bg-[#018DAE] text-white'
+                                                    : slot.available
+                                                        ? 'bg-[#EBEBEB] text-[#000] hover:bg-[#018DAE] hover:text-white'
+                                                        : 'bg-[#EBEBEB] text-[#545454] opacity-50 cursor-not-allowed'
+                                                }
+                                            `}
+                                        >
+                                            {slot.time}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* Confirm Button */}
                     {selectedDate && selectedTime && (
                         <button
-                            className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-[#79D3db] to-[#018DAE] text-white font-[700] text-[15px] rounded-lg shadow-sm transition-all hover:opacity-90"
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                            className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-[#79D3db] to-[#018DAE] text-white font-[700] text-[15px] rounded-lg shadow-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                         >
-                            Confirmar Agendamento
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Agendando...
+                                </>
+                            ) : (
+                                'Confirmar Agendamento'
+                            )}
                         </button>
                     )}
                 </div>
