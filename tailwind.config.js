@@ -9,7 +9,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Primary tokens: keep `primary` linked to EnvConfig but add useful shades from Figma
         "primary": EnvConfig.PRIMARY_COLOR,
+        "primary-50": "#EEF6FF",
+        "primary-300": "#7FB7F0",
+        "primary-600": "#2563EB",
         "secondary": EnvConfig.SECONDARY_COLOR,
         "white": "#FFFFFF",
         "black": "#000000",
@@ -64,6 +68,10 @@ module.exports = {
         "overlay": "rgba(0, 0, 0, 0.5)",
         "white-transparent": "rgba(255, 255, 255, 0.96)",
         "transparent": "rgba(0,0,0,0)",
+      },
+      fontFamily: {
+        // Use Open Sans as the default sans font (Figma uses Open Sans)
+        sans: ["'Open Sans'", 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial'],
       },
     },
   },

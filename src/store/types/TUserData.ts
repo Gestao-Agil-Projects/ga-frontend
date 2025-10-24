@@ -4,4 +4,8 @@ export type TUserData = {
     is_active: boolean;
     is_superuser: boolean;
     is_verified: boolean;
+    // Optional profile fields (some UI components expect these)
+    full_name?: string;
+    phone?: string;
+    birth_date?: string;
 }

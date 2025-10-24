@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,4 +51,9 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
     background-clip: content-box;
+}
+
+/* Apply Open Sans as default for the whole site (fallbacks included) */
+html, body {
+    font-family: 'Open Sans', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }

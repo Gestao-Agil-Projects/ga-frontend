@@ -81,16 +81,43 @@ export default function MobileMenu({ isOpen, onClose, onLoginClick }: MobileMenu
                 </div>
 
                 <nav className="py-4">
-                    {navigationLinks.map((link) => (
-                        <Link 
-                            key={link.to}
-                            to={link.to} 
-                            className={getLinkClasses(link.to)}
-                            onClick={onClose}
-                        >
-                            {link.label}
-                        </Link>
-                    ))}
+                        {navigationLinks.map((link) => {
+                            if (link.to === '/professionals') {
+                                return (
+                                    <button
+                                        key={link.to}
+                                        onClick={() => {
+                                                    if (location.pathname === '/') {
+                                                        const el = document.getElementById('professionals-section');
+                                                        if (el) {
+                                                            const headerHeight = document.querySelector('header')?.clientHeight ?? 0;
+                                                            const top = window.scrollY + el.getBoundingClientRect().top - headerHeight - 12;
+                                                            window.scrollTo({ top, behavior: 'smooth' });
+                                                        }
+                                                        onClose();
+                                                    } else {
+                                                        navigate('/professionals');
+                                                        onClose();
+                                                    }
+                                                }}
+                                        className={getLinkClasses(link.to)}
+                                    >
+                                        {link.label}
+                                    </button>
+                                );
+                            }
+
+                            return (
+                                <Link 
+                                    key={link.to}
+                                    to={link.to} 
+                                    className={getLinkClasses(link.to)}
+                                    onClick={onClose}
+                                >
+                                    {link.label}
+                                </Link>
+                            );
+                        })}
                 </nav>
 
                 <div className="p-4 border-t space-y-3">

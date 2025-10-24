@@ -1,16 +1,79 @@
-import { Header } from "../../components/Header";
+import { useMemo, useState } from 'react';
+import ProfessionalCard from './ProfessionalCard.tsx';
+import { professionals as mockProfessionals } from './mockProfessionals.ts';
+import type { Professional } from './mockProfessionals.ts';
 
 export function Professionals() {
+    const [query, setQuery] = useState('');
+    const [specialty, setSpecialty] = useState('all');
+
+        const specialties = useMemo(() => {
+            const set = new Set<string>();
+            mockProfessionals.forEach((p: Professional) => p.specialties.forEach((s: string) => set.add(s)));
+            return ['all', ...Array.from(set)];
+        }, []);
+
+        const filtered = useMemo<Professional[]>(() => {
+            return mockProfessionals.filter((p: Professional) => {
+                const q = query.trim().toLowerCase();
+                const matchesQuery =
+                    q === '' ||
+                    p.name.toLowerCase().includes(q) ||
+                    p.bio.toLowerCase().includes(q) ||
+                    p.specialties.some((s: string) => s.toLowerCase().includes(q));
+                const matchesSpecialty = specialty === 'all' || p.specialties.includes(specialty);
+                return matchesQuery && matchesSpecialty;
+            });
+        }, [query, specialty]);
+
     return (
-        <div className="min-h-screen bg-black">
-            <Header />
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <h1 className="text-3xl font-bold text-white mb-4">
-                    Profissionais
-                    </h1>
+        <section id="professionals-section" className="bg-gray-50 py-12">
+            <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-8">
+                    <h2 className="text-blue-600 font-semibold">Nossos Profissionais</h2>
+                    <p className="mt-2 text-gray-600 max-w-2xl mx-auto">
+                        Conecte-se com profissionais especializados e qualificados. Encontre o
+                        profissional ideal para suas necessidades.
+                    </p>
                 </div>
-            </main>
-        </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 items-center mb-8">
+                    <div className="flex-1">
+                        <label className="relative block">
+                            <span className="sr-only">Buscar</span>
+                            <input
+                                className="placeholder:italic placeholder:text-slate-400 block w-full bg-white border border-slate-200 rounded-md py-3 pl-10 pr-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                placeholder="Buscar por nome ou especialização..."
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+                            <span className="absolute inset-y-0 left-3 flex items-center text-slate-400">🔍</span>
+                        </label>
+                    </div>
+
+                    <div className="w-full sm:w-56">
+                        <select
+                            value={specialty}
+                            onChange={(e) => setSpecialty(e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-md py-3 px-3 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                            {specialties.map((s) => (
+                                <option key={s} value={s}>
+                                    {s === 'all' ? 'Todas as especializações' : s}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                        {filtered.map((p) => (
+                            <ProfessionalCard key={p.id} professional={p} />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </section>
     );
 }

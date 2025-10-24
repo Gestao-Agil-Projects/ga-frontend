@@ -1,21 +1,45 @@
-import { Heart, Shield, Calendar, Users, Calendar as CalendarIcon } from "lucide-react";
+import { Heart, Shield, Calendar } from "lucide-react";
 import { CardHome } from "../../Cards/CardHome";
+import { useNavigate } from "react-router-dom";
 
 export function InitialSection() {
+    const navigate = useNavigate();
+
+    const handleViewProfessionals = () => {
+        const el = document.getElementById('professionals-section');
+        if (el) {
+            const headerHeight = document.querySelector('header')?.clientHeight ?? 0;
+            const top = window.scrollY + el.getBoundingClientRect().top - headerHeight - 12;
+            window.scrollTo({ top, behavior: 'smooth' });
+        } else {
+            navigate('/professionals');
+        }
+    };
+
     return (
-        <div className="bg-[#E9EEF4] flex flex-col items-center justify-center py-20 px-4">
+        <div className="bg-gradient-to-br from-[#eaf0f6] to-[#f3f6f9] flex flex-col items-center justify-center py-24 px-4">
             <div className="max-w-5xl mx-auto w-full">
-                <div className="text-center mb-20">
-                    <h1 className="text-5xl md:text-6xl font-bold text-[#4285F4] mb-8 leading-tight">
+                <div className="text-center mb-12">
+                    <h1 className="text-5xl md:text-6xl font-bold text-[#2F7CD1] mb-6 leading-tight">
                         Sua mente em paz, nossa prioridade
                     </h1>
-                    <p className="text-lg md:text-xl text-[#5F6368] mb-12 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-lg md:text-xl text-[#6B7280] mb-8 max-w-3xl mx-auto leading-relaxed">
                         Encontre o psicólogo ideal para sua jornada de bem-estar mental. Profissionais qualificados prontos para te acompanhar.
                     </p>
-                    
+
+                    <div className="flex items-center justify-center gap-4">
+                        <button onClick={handleViewProfessionals} className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-md shadow-md">
+                            <span>👥</span>
+                            <span>Ver Profissionais</span>
+                        </button>
+                        <button onClick={() => navigate('/professionals')} className="inline-flex items-center gap-2 bg-white border border-slate-200 text-gray-700 px-5 py-3 rounded-md hover:shadow-sm">
+                            <span>📅</span>
+                            <span>Agendar Consulta</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
                     <CardHome 
                         title="Cuidado Personalizado" 
                         description="Cada profissional oferece abordagens específicas para suas necessidades únicas."

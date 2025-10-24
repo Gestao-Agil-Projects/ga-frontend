@@ -9,5 +9,9 @@ export type TUserDto = {
 
 export type TUserAccountData = {
     access_token: string;
-    is_admin: boolean;
+    token_type?: string;
+    is_admin?: boolean;
+    is_superuser?: boolean;
+    role?: string;
+    email?: string;
 }

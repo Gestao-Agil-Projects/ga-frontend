@@ -76,6 +76,15 @@ export function Header() {
 
   const isLoggedIn = userAccountData?.access_token;
 
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    const headerHeight = document.querySelector('header')?.clientHeight ?? 0;
+    const top = window.scrollY + el.getBoundingClientRect().top - headerHeight - 12;
+    window.scrollTo({ top, behavior: 'smooth' });
+    return true;
+  };
+
   return (
     <>
       <header className="bg-white shadow-sm border-b">
@@ -88,15 +97,37 @@ export function Header() {
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
-              {navigationLinks.map((link) => (
-                <Link 
-                  key={link.to}
-                  to={link.to} 
-                  className={linkClasses(link.to)}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navigationLinks.map((link) => {
+                if (link.to === '/professionals') {
+                  return (
+                    <button
+                      key={link.to}
+                      onClick={(e) => {
+                        if (location.pathname === '/') {
+                          e.preventDefault();
+                          const ok = scrollToSection('professionals-section');
+                          if (!ok) navigate('/professionals');
+                        } else {
+                          navigate('/professionals');
+                        }
+                      }}
+                      className={linkClasses(link.to)}
+                    >
+                      {link.label}
+                    </button>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={linkClasses(link.to)}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </nav>
 
             <div className="hidden lg:flex space-x-4 items-center">

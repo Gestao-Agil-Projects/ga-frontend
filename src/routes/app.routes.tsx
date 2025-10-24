@@ -3,6 +3,8 @@ import { Home } from "../screens/Home";
 import { About } from "../screens/About";
 import { Contact } from "../screens/Contact";
 import { Professionals } from "../screens/Professionals";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 import { User } from "../screens/User";
 import { Dashboard } from "../screens/Dashboard";
 import { userStore } from "../store/userStore";
@@ -27,7 +29,16 @@ export function AppRoutes() {
       <Route path="/" element={<RootRoute />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
-      <Route path="/professionals" element={<Professionals />} />
+      <Route
+        path="/professionals"
+        element={
+          <>
+            <Header />
+            <Professionals />
+            <Footer />
+          </>
+        }
+      />
       <Route path="/user" element={<User />} />
       <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
