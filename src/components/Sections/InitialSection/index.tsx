@@ -17,51 +17,51 @@ export function InitialSection() {
     };
 
     return (
-        <div className="bg-gradient-to-br from-[#eaf0f6] to-[#f3f6f9] flex flex-col items-center justify-center py-24 px-4">
-            <div className="max-w-5xl mx-auto w-full">
-                <div className="text-center mb-12">
-                    <h1 className="text-5xl md:text-6xl font-bold text-[#2F7CD1] mb-6 leading-tight">
+        <div className="bg-gradient-to-br from-primary-50 to-white flex flex-col items-center justify-center py-28 px-4">
+            <div className="max-w-6xl mx-auto w-full">
+                <div className="text-center mb-14">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary mb-6 leading-tight">
                         Sua mente em paz, nossa prioridade
                     </h1>
-                    <p className="text-lg md:text-xl text-[#6B7280] mb-8 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-base md:text-lg text-neutral-19 mb-8 max-w-3xl mx-auto leading-relaxed">
                         Encontre o psicólogo ideal para sua jornada de bem-estar mental. Profissionais qualificados prontos para te acompanhar.
                     </p>
 
                     <div className="flex items-center justify-center gap-4">
                         <button
                             onClick={handleViewProfessionals}
-                            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-md shadow-md"
+                            className="inline-flex items-center gap-3 bg-primary-600 hover:bg-primary-600/90 text-white px-6 py-3 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-primary-300"
                             aria-label="Ver Profissionais"
                         >
                             <Users className="w-5 h-5" />
-                            <span>Ver Profissionais</span>
+                            <span className="font-medium">Ver Profissionais</span>
                         </button>
                         <button
                             onClick={() => navigate('/professionals')}
-                            className="inline-flex items-center gap-2 bg-white border border-slate-200 text-gray-700 px-5 py-3 rounded-md hover:shadow-sm"
+                            className="inline-flex items-center gap-3 bg-white border border-slate-200 text-gray-700 px-5 py-3 rounded-lg hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
                             aria-label="Agendar Consulta"
                         >
                             <Calendar className="w-5 h-5" />
-                            <span>Agendar Consulta</span>
+                            <span className="font-medium">Agendar Consulta</span>
                         </button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
                     <CardHome 
                         title="Cuidado Personalizado" 
                         description="Cada profissional oferece abordagens específicas para suas necessidades únicas."
-                        icon={<Heart className="w-8 h-8" />} 
+                        icon={<Heart className="w-6 h-6" />} 
                     />
                     <CardHome 
                         title="Profissionais Verificados" 
                         description="Todos os psicólogos são registrados no CRP e possuem especializações comprovadas."
-                        icon={<Shield className="w-8 h-8" />} 
+                        icon={<Shield className="w-6 h-6" />} 
                     />
                     <CardHome 
                         title="Agendamento Fácil" 
                         description="Sistema simples e rápido para marcar sua consulta no horário mais conveniente."
-                        icon={<Calendar className="w-8 h-8" />} 
+                        icon={<Calendar className="w-6 h-6" />} 
                     />
                 </div>
             </div>
