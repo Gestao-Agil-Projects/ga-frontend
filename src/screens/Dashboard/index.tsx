@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Users, UserCheck, Calendar, UserX, Settings } from "lucide-react";
+import { Users, Calendar, Settings, User, UserPlus, Shield } from "lucide-react";
 import { Header } from "../../components/Header";
 import { AppointmentManagement } from "../../components/AppointmentManagement";
 import { ManagePsychologists } from "../../components/ManagePsychologists";
+import { ManageUsers } from "../../components/ManageUsers";
 import { CardDashboard } from "../../components/Cards/CardDashboard";
 import TabBar from "../../components/TabBar";
 
@@ -10,8 +11,9 @@ export function Dashboard() {
   const [activeTab, setActiveTab] = useState<string>("agenda");
 
   const dashboardTabs = [
-    { id: "agenda", label: "Agenda Geral" },
-    { id: "psicologos", label: "Gerenciar Psicólogos" }
+    { id: "agenda", label: "Agenda Geral", icon: <Calendar className="w-4 h-4" /> },
+    { id: "psicologos", label: "Gerenciar Psicólogos", icon: <Users className="w-4 h-4" /> },
+    { id: "usuarios", label: "Visualizar Usuários", icon: <User className="w-4 h-4" /> }
   ];
 
   return (
@@ -33,28 +35,28 @@ export function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <CardDashboard
-            title="Total de Psicólogos"
-            value="3"
-            icon={<Users className="w-4 h-4" />}
+            title="Total de Usuários"
+            value="4"
+            icon={<User className="w-4 h-4" />}
             color="text-blue-600"
           />
           <CardDashboard
-            title="Profissionais Ativos"
-            value="2"
-            icon={<UserCheck className="w-4 h-4" />}
+            title="Pacientes"
+            value="3"
+            icon={<UserPlus className="w-4 h-4" />}
             color="text-green-600"
+          />
+          <CardDashboard
+            title="Administrativos"
+            value="1"
+            icon={<Shield className="w-4 h-4" />}
+            color="text-purple-600"
           />
           <CardDashboard
             title="Consultas Hoje"
             value="7"
             icon={<Calendar className="w-4 h-4" />}
             color="text-blue-600"
-          />
-          <CardDashboard
-            title="Profissionais Bloqueados"
-            value="1"
-            icon={<UserX className="w-4 h-4" />}
-            color="text-red-600"
           />
         </div>
 
@@ -67,8 +69,10 @@ export function Dashboard() {
 
         {activeTab === "agenda" ? (
           <AppointmentManagement />
-        ) : (
+        ) : activeTab === "psicologos" ? (
           <ManagePsychologists />
+        ) : (
+          <ManageUsers />
         )}
       </main>
     </div>

@@ -27,5 +27,14 @@ export const specialityService = {
         } catch (error: any) {
             throw error;
         }
+    },
+
+    async deleteSpeciality(id: string, token: string) {
+        try {
+            const response = await apiSpeciality(token).delete(`/api/admin/speciality/?speciality_id=${id}`);
+            return response;
+        } catch (error: any) {
+            throw error;
+        }
     }
 };

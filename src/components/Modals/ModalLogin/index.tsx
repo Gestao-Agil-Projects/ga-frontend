@@ -37,10 +37,14 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
         birth_date,
         setBirthDate
     } = createUserStore();
-    const { user, setUser, userAccountData, setUserAccountData } = userStore();
+    const { user, setUser, setUserAccountData } = userStore();
     const { showToast } = useToast();
     const [emailLogin, setEmailLogin] = useState("");
     const [passwordLogin, setPasswordLogin] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPasswordFields, setShowPasswordFields] = useState(false);
+    const [currentUserData, setCurrentUserData] = useState<any>(null);
     
     const [activeTab, setActiveTab] = useState<string>("login");
     const [isLoading, setIsLoading] = useState(false);
@@ -67,6 +71,90 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
         setBirthDate("");
         setEmailLogin("");
         setPasswordLogin("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setShowPasswordFields(false);
+        setCurrentUserData(null);
+    };
+
+    const handleChangePassword = async (userData: any) => {
+        if (!newPassword || !confirmPassword) {
+            showToast("Erro!", "Preencha todos os campos.", "error");
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showToast("Erro!", "As senhas não coincidem.", "error");
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            showToast("Erro!", "A senha deve ter pelo menos 6 caracteres.", "error");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const patchResponse = await fetch('http://localhost:8000/api/users/me', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userData.access_token}`
+                },
+                body: JSON.stringify({
+                    password: newPassword,
+                    is_first_access: false
+                })
+            });
+
+            if (!patchResponse.ok) {
+                throw new Error('Erro ao alterar senha');
+            }
+
+            showToast(
+                "Sucesso!",
+                "Senha alterada com sucesso!",
+                "success"
+            );
+
+            // Fechar modal e limpar formulário
+            clearForm();
+            onClose();
+            
+            // Continuar com o fluxo normal após fechar o modal
+            if (userData?.is_superuser) {
+                navigate("/dashboard");
+            } else {
+                navigate("/user");
+            }
+        } catch (error: any) {
+            showToast(
+                "Erro!",
+                "Erro ao alterar senha. Tente novamente.",
+                "error"
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleContinueWithTemporaryPassword = (userData: any) => {
+        showToast(
+            "Sucesso!",
+            "Login realizado com sucesso! Bem-vindo ao Calm Mind.",
+            "success"
+        );
+        
+        // Fechar modal e limpar formulário
+        clearForm();
+        onClose();
+        
+        // Redirecionar após fechar o modal
+        if (userData?.is_superuser) {
+            navigate("/dashboard");
+        } else {
+            navigate("/user");
+        }
     };
 
     const handleCreateUser = async () => {
@@ -90,10 +178,16 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
 
             console.log("📤 Dados sendo enviados:", userData);
 
-            const response = await userService.postCreateUser(userData);
+            const response = await userService.createPatient(userData, "");
 
             if (response && response.status === 201) {
-                setUser(response.data);
+                const userData = {
+                    ...response.data,
+                    is_active: true,
+                    is_superuser: false,
+                    is_verified: false
+                };
+                setUser(userData);
                 console.log("user", user);
                 console.log("✅ Usuário criado:", response.data);
 
@@ -164,25 +258,65 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                     const response = await userService.postLogin(loginData);
                     
                     if (response.status === 200) {
-                        const adminData = {
-                            ...response.data,
-                            is_admin: true,
-                            email: EnvConfig.ADMIN_EMAIL,
-                            role: "admin"
-                        };
-                        
-                        setUserAccountData(adminData);
-                        
-                        showToast(
-                            "Sucesso!",
-                            "Login de administrador realizado com sucesso!",
-                            "success"
-                        );
-                        
-                        clearForm();
-                        onClose();
-                        navigate("/dashboard");
-                        return;
+                        // Fazer chamada para /api/users/me para obter dados completos do admin
+                        try {
+                            console.log('Fazendo chamada para /api/users/me com token do admin:', response.data.access_token);
+                            const userMeResponse = await fetch('http://localhost:8000/api/users/me', {
+                                headers: {
+                                    'Authorization': `Bearer ${response.data.access_token}`
+                                }
+                            });
+                            
+                            console.log('Resposta do /api/users/me para admin:', userMeResponse.status, userMeResponse.statusText);
+                            
+                            if (userMeResponse.ok) {
+                                const userMeData = await userMeResponse.json();
+                                console.log('Dados do admin obtidos:', userMeData);
+                                console.log('is_first_access do admin:', userMeData.is_first_access);
+                                const adminData = {
+                                    ...response.data,
+                                    ...userMeData
+                                };
+                                
+                                setUserAccountData(adminData);
+                                setCurrentUserData(adminData);
+                                
+                                // Verificar se é primeiro acesso do admin
+                                if (adminData.is_first_access === true) {
+                                    console.log('Primeiro acesso do admin detectado - exibindo campos de senha');
+                                    setShowPasswordFields(true);
+                                    showToast(
+                                        "Bem-vindo!",
+                                        "Este é seu primeiro acesso. Defina uma nova senha para sua conta.",
+                                        "info"
+                                    );
+                                    // NÃO fechar o modal nem redirecionar - admin deve alterar senha primeiro
+                                    return;
+                                }
+                                
+                                // Só executa se NÃO for primeiro acesso
+                                showToast(
+                                    "Sucesso!",
+                                    "Login de administrador realizado com sucesso!",
+                                    "success"
+                                );
+                                
+                                clearForm();
+                                onClose();
+                                navigate("/dashboard");
+                                return;
+                            } else {
+                                throw new Error('Erro ao obter dados do admin');
+                            }
+                        } catch (adminMeError: any) {
+                            console.error('Erro ao obter dados do admin:', adminMeError);
+                            showToast(
+                                "Erro!",
+                                "Erro ao obter dados do administrador. Tente novamente.",
+                                "error"
+                            );
+                            return;
+                        }
                     }
                 } catch (adminLoginError: any) {
                     showToast(
@@ -206,13 +340,81 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
             const response = await userService.postLogin(loginData);
             
             if (response.status === 200) {
-                showToast(
-                    "Sucesso!",
-                    "Login realizado com sucesso! Bem-vindo ao Calm Mind.",
-                    "success"
-                );
-                clearForm();
-                setUserAccountData(response.data);
+                // Fazer chamada para /api/users/me para obter dados completos do usuário
+                try {
+                    console.log('Fazendo chamada para /api/users/me com token:', response.data.access_token);
+                    const userMeResponse = await fetch('http://localhost:8000/api/users/me', {
+                        headers: {
+                            'Authorization': `Bearer ${response.data.access_token}`
+                        }
+                    });
+                    
+                    console.log('Resposta do /api/users/me:', userMeResponse.status, userMeResponse.statusText);
+                    
+                    if (userMeResponse.ok) {
+                        const userMeData = await userMeResponse.json();
+                        console.log('Dados do usuário obtidos:', userMeData);
+                        console.log('is_first_access do backend:', userMeData.is_first_access);
+                        const userData = {
+                            ...response.data,
+                            ...userMeData
+                        };
+                        
+                        console.log('userData final:', userData);
+                        setUserAccountData(userData);
+                        setCurrentUserData(userData);
+                        
+                        // Verificar se é primeiro acesso
+                        console.log('Verificando is_first_access:', userData.is_first_access, typeof userData.is_first_access);
+                        if (userData.is_first_access === true) {
+                            console.log('Primeiro acesso detectado - exibindo campos de senha');
+                            setShowPasswordFields(true);
+                            showToast(
+                                "Bem-vindo!",
+                                "Este é seu primeiro acesso. Defina uma nova senha para sua conta.",
+                                "info"
+                            );
+                            // NÃO fechar o modal nem redirecionar - usuário deve alterar senha primeiro
+                            return; // IMPORTANTE: return aqui para não continuar
+                        }
+                        
+                        // Só executa se NÃO for primeiro acesso
+                        console.log('Não é primeiro acesso - redirecionando');
+                        showToast(
+                            "Sucesso!",
+                            "Login realizado com sucesso! Bem-vindo ao Calm Mind.",
+                            "success"
+                        );
+                        clearForm();
+                        onClose();
+                        
+                        // Verificar is_superuser para redirecionamento
+                        if (userData.is_superuser) {
+                            navigate("/dashboard");
+                        } else {
+                            navigate("/user");
+                        }
+                    } else {
+                        throw new Error('Erro ao obter dados do usuário');
+                    }
+                } catch (userMeError) {
+                    console.error('Erro ao obter dados do usuário:', userMeError);
+                    
+                    // Se o erro for de parsing JSON, pode ser que a URL esteja errada
+                    if (userMeError instanceof SyntaxError) {
+                        showToast(
+                            "Erro!",
+                            "Erro de conexão com o servidor. Verifique se o backend está rodando.",
+                            "error"
+                        );
+                    } else {
+                        showToast(
+                            "Erro!",
+                            "Erro ao obter dados do usuário. Tente novamente.",
+                            "error"
+                        );
+                    }
+                }
             }
 
             onClose();
@@ -286,6 +488,54 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                                         placeholder="Sua senha"
                                         label="Senha"
                                     />
+                                    
+                                    {/* Campos de alteração de senha para primeiro acesso */}
+                                    {showPasswordFields && (
+                                        <>
+                                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                    <span className="text-sm font-medium text-blue-800">Primeiro Acesso</span>
+                                                </div>
+                                                <p className="text-sm text-blue-700 mb-4">
+                                                    Defina uma nova senha para sua conta ou continue com a senha temporária.
+                                                </p>
+                                                
+                                                <Input
+                                                    type="password"
+                                                    value={newPassword}
+                                                    onChange={(text) => setNewPassword(text.target.value)}
+                                                    placeholder="Nova senha"
+                                                    label="Nova Senha"
+                                                />
+                                                
+                                                <Input
+                                                    type="password"
+                                                    value={confirmPassword}
+                                                    onChange={(text) => setConfirmPassword(text.target.value)}
+                                                    placeholder="Repita a nova senha"
+                                                    label="Repita a Nova Senha"
+                                                />
+                                                
+                                                <div className="flex gap-2 mt-4">
+                                                    <ButtonPrimary
+                                                        onClick={() => handleChangePassword(currentUserData)}
+                                                        disabled={isLoading}
+                                                        className="flex-1"
+                                                    >
+                                                        {isLoading ? "Alterando..." : "Alterar Senha"}
+                                                    </ButtonPrimary>
+                                                    
+                                                    <button
+                                                        onClick={() => handleContinueWithTemporaryPassword(currentUserData)}
+                                                        className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                                                    >
+                                                        Continuar com Senha Provisória
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </>
                             ) : (
                                 <>
