@@ -1,50 +1,47 @@
-// import logo from '../../assets'
+import logo from "../../assets/logo.png";
 
 
 export function Footer() {
     return (
         <footer className="bg-white py-12 px-4">
             <div className="max-w-6xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                    <div>
-                        <h3 className="text-xl font-bold text-[#3366CC] mb-4">
-                            Calm Mind
-                        </h3>
-                        <p className="text-[#4A4A4A] text-sm leading-relaxed">
-                            Conectando pessoas a profissionais de psicologia qualificados para promover saúde mental e bem-estar emocional.
-                        </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 justify-items-center items-center ">
+                    <div className="space-y-6">
+                        <img src={logo} alt="Logo" className="w-[250px] h-[110px]" />
+{ 
+                        }
                     </div>
 
-                    <div>
-                        <h3 className="text-xl font-bold text-[#3366CC] mb-4">
+                    <div className="h-full">
+                        <h3 className="text-xl font-bold text-BLUE2 mb-4">
                             Links Úteis
                         </h3>
                         <ul className="space-y-2">
                             <li>
-                                <a href="#" className="text-[#4A4A4A] text-sm hover:text-[#3366CC] transition-colors">
+                                <a href="#" className="text-[#4A4A4A] text-sm hover:text-BLUE2 transition-colors">
                                     Início
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="text-[#4A4A4A] text-sm hover:text-[#3366CC] transition-colors">
+                                <a href="#" className="text-[#4A4A4A] text-sm hover:text-BLUE2 transition-colors">
                                     Profissionais
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="text-[#4A4A4A] text-sm hover:text-[#3366CC] transition-colors">
+                                <a href="#" className="text-[#4A4A4A] text-sm hover:text-BLUE2 transition-colors">
                                     Sobre
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="text-[#4A4A4A] text-sm hover:text-[#3366CC] transition-colors">
+                                <a href="#" className="text-[#4A4A4A] text-sm hover:text-BLUE2 transition-colors">
                                     Contato
                                 </a>
                             </li>
                         </ul>
                     </div>
 
-                    <div>
-                        <h3 className="text-xl font-bold text-[#3366CC] mb-4">
+                    <div className="h-full">
+                        <h3 className="text-xl font-bold text-BLUE2 mb-4">
                             Contato
                         </h3>
                         <div className="space-y-2">
@@ -65,7 +62,7 @@ export function Footer() {
 
                 <div className="text-center">
                     <p className="text-[#4A4A4A] text-sm">
-                        © 2025 Calm Mind. Todos os direitos reservados.
+                        © 2025 Viva Espaço Terapêutico. Todos os direitos reservados.
                     </p>
                 </div>
             </div>
