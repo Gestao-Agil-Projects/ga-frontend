@@ -4,6 +4,7 @@ import { userStore } from "../../store/userStore";
 import { userManagementStore } from "../../store/userManagementStore";
 import { userService, type UserData } from "../../services/User/user.service";
 import { ModalCreateUser } from "../Modals/ModalCreateUser";
+import { ModalScheduleAppointment } from "../Modals/ModalScheduleAppointment";
 import { useToast } from "../../contexts/ToastContext";
 
 export function ManageUsers() {
@@ -16,6 +17,8 @@ export function ManageUsers() {
     const [activeFilter, setActiveFilter] = useState<'all' | 'patients' | 'admins'>('all');
     const [isLoading, setIsLoading] = useState(false);
     const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
+    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+    const [selectedPatient, setSelectedPatient] = useState<UserData | null>(null);
 
     useEffect(() => {
         if (userAccountData?.access_token) {
@@ -133,13 +136,9 @@ export function ManageUsers() {
         }
     };
 
-    const handleScheduleAppointment = () => {
-        // TODO: Implementar modal de agendamento
-        showToast(
-            "Info!",
-            "Funcionalidade de agendamento será implementada em breve.",
-            "info"
-        );
+    const handleScheduleAppointment = (patient: UserData) => {
+        setSelectedPatient(patient);
+        setIsScheduleModalOpen(true);
     };
 
     return (
@@ -255,22 +254,34 @@ export function ManageUsers() {
                                     <div className={`space-y-1 text-sm ${
                                         user.is_superuser ? 'text-purple-700' : 'text-gray-600'
                                     }`}>
-                                        <div className="flex items-center gap-2">
-                                            <Mail className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
-                                            <span>{user.email}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Phone className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
-                                            <span>{user.phone}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <FileText className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
-                                            <span>{user.cpf}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
-                                            <span>Cadastrado em {formatDate(user.created_at)}</span>
-                                        </div>
+                                        {user.email && (
+                                            <div className="flex items-center gap-2">
+                                                <Mail className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
+                                                <span>{user.email}</span>
+                                            </div>
+                                        )}
+
+                                        {user.phone && (
+                                            <div className="flex items-center gap-2">
+                                                <Phone className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
+                                                <span>{user.phone}</span>
+                                            </div>
+                                        )}
+
+                                        {user.cpf && (
+                                            <div className="flex items-center gap-2">
+                                                <FileText className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
+                                                <span>{user.cpf}</span>
+                                            </div>
+                                        )}
+                                        {user.created_at && (
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
+                                                <span>Cadastrado em {formatDate(user.created_at)}</span>
+                                            </div>
+                                        )}
+
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -288,7 +299,7 @@ export function ManageUsers() {
                             <div className="flex gap-2 mb-4">
                                 {!user.is_superuser && (
                                 <button 
-                                    onClick={handleScheduleAppointment}
+                                    onClick={() => handleScheduleAppointment(user)}
                                     className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
                                 >
                                     <CalendarIcon className="w-3 h-3" />
@@ -342,8 +353,23 @@ export function ManageUsers() {
 
             <ModalCreateUser 
                 isOpen={isCreateUserModalOpen}
-                onClose={() => setIsCreateUserModalOpen(false)}
+                onClose={() => {
+                    setIsCreateUserModalOpen(false);
+                    // Recarregar dados após fechar o modal
+                    fetchUsers();
+                }}
                 userType="patient"
+            />
+
+            <ModalScheduleAppointment
+                isOpen={isScheduleModalOpen}
+                onClose={() => {
+                    setIsScheduleModalOpen(false);
+                    setSelectedPatient(null);
+                    // Recarregar dados após fechar o modal
+                    fetchUsers();
+                }}
+                patient={selectedPatient}
             />
         </div>
     );

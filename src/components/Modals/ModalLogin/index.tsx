@@ -95,21 +95,24 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
 
         setIsLoading(true);
         try {
-            const patchResponse = await fetch('http://localhost:8000/api/users/me', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userData.access_token}`
-                },
-                body: JSON.stringify({
+            const patchResponse = await userService.updateCurrentUser(
+                {
                     password: newPassword,
                     is_first_access: false
-                })
-            });
+                },
+                userData.access_token
+            );
 
-            if (!patchResponse.ok) {
+            if (patchResponse.status !== 200) {
                 throw new Error('Erro ao alterar senha');
             }
+
+            // Atualizar o userAccountData no store
+            const updatedUserData = {
+                ...userData,
+                is_first_access: false
+            };
+            setUserAccountData(updatedUserData);
 
             showToast(
                 "Sucesso!",
@@ -138,22 +141,52 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
         }
     };
 
-    const handleContinueWithTemporaryPassword = (userData: any) => {
-        showToast(
-            "Sucesso!",
-            "Login realizado com sucesso! Bem-vindo ao Calm Mind.",
-            "success"
-        );
-        
-        // Fechar modal e limpar formulário
-        clearForm();
-        onClose();
-        
-        // Redirecionar após fechar o modal
-        if (userData?.is_superuser) {
-            navigate("/dashboard");
-        } else {
-            navigate("/user");
+    const handleContinueWithTemporaryPassword = async (userData: any) => {
+        setIsLoading(true);
+        try {
+            // Fazer PATCH request para setar is_first_access como false
+            const patchResponse = await userService.updateCurrentUser(
+                {
+                    is_first_access: false
+                },
+                userData.access_token
+            );
+
+            if (patchResponse.status !== 200) {
+                throw new Error('Erro ao atualizar status de primeiro acesso');
+            }
+
+            // Atualizar o userAccountData no store
+            const updatedUserData = {
+                ...userData,
+                is_first_access: false
+            };
+            setUserAccountData(updatedUserData);
+
+            showToast(
+                "Sucesso!",
+                "Login realizado com sucesso! Bem-vindo ao Calm Mind.",
+                "success"
+            );
+            
+            // Fechar modal e limpar formulário
+            clearForm();
+            onClose();
+            
+            // Redirecionar após fechar o modal
+            if (userData?.is_superuser) {
+                navigate("/dashboard");
+            } else {
+                navigate("/user");
+            }
+        } catch (error: any) {
+            showToast(
+                "Erro!",
+                "Erro ao finalizar primeiro acesso. Tente novamente.",
+                "error"
+            );
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -261,16 +294,12 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                         // Fazer chamada para /api/users/me para obter dados completos do admin
                         try {
                             console.log('Fazendo chamada para /api/users/me com token do admin:', response.data.access_token);
-                            const userMeResponse = await fetch('http://localhost:8000/api/users/me', {
-                                headers: {
-                                    'Authorization': `Bearer ${response.data.access_token}`
-                                }
-                            });
+                            const userMeResponse = await userService.getCurrentUser(response.data.access_token);
                             
-                            console.log('Resposta do /api/users/me para admin:', userMeResponse.status, userMeResponse.statusText);
+                            console.log('Resposta do /api/users/me para admin:', userMeResponse.status);
                             
-                            if (userMeResponse.ok) {
-                                const userMeData = await userMeResponse.json();
+                            if (userMeResponse.status === 200) {
+                                const userMeData = userMeResponse.data;
                                 console.log('Dados do admin obtidos:', userMeData);
                                 console.log('is_first_access do admin:', userMeData.is_first_access);
                                 const adminData = {
@@ -343,16 +372,12 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                 // Fazer chamada para /api/users/me para obter dados completos do usuário
                 try {
                     console.log('Fazendo chamada para /api/users/me com token:', response.data.access_token);
-                    const userMeResponse = await fetch('http://localhost:8000/api/users/me', {
-                        headers: {
-                            'Authorization': `Bearer ${response.data.access_token}`
-                        }
-                    });
+                    const userMeResponse = await userService.getCurrentUser(response.data.access_token);
                     
-                    console.log('Resposta do /api/users/me:', userMeResponse.status, userMeResponse.statusText);
+                    console.log('Resposta do /api/users/me:', userMeResponse.status);
                     
-                    if (userMeResponse.ok) {
-                        const userMeData = await userMeResponse.json();
+                    if (userMeResponse.status === 200) {
+                        const userMeData = userMeResponse.data;
                         console.log('Dados do usuário obtidos:', userMeData);
                         console.log('is_first_access do backend:', userMeData.is_first_access);
                         const userData = {
@@ -508,30 +533,31 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                                                     placeholder="Nova senha"
                                                     label="Nova Senha"
                                                 />
+                                                <div className="mt-2">
+                                                    <Input
+                                                        type="password"
+                                                        value={confirmPassword}
+                                                        onChange={(text) => setConfirmPassword(text.target.value)}
+                                                        placeholder="Repita a nova senha"
+                                                        label="Repita a Nova Senha"
+                                                    />
+                                                </div>
                                                 
-                                                <Input
-                                                    type="password"
-                                                    value={confirmPassword}
-                                                    onChange={(text) => setConfirmPassword(text.target.value)}
-                                                    placeholder="Repita a nova senha"
-                                                    label="Repita a Nova Senha"
-                                                />
                                                 
-                                                <div className="flex gap-2 mt-4">
+                                                <div className="gap-2 mt-4">
                                                     <ButtonPrimary
                                                         onClick={() => handleChangePassword(currentUserData)}
                                                         disabled={isLoading}
-                                                        className="flex-1"
                                                     >
-                                                        {isLoading ? "Alterando..." : "Alterar Senha"}
+                                                    {isLoading ? "Alterando..." : "Alterar Senha"}
                                                     </ButtonPrimary>
-                                                    
-                                                    <button
+
+                                                    <ButtonPrimary
                                                         onClick={() => handleContinueWithTemporaryPassword(currentUserData)}
-                                                        className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                                                        disabled={isLoading}
                                                     >
                                                         Continuar com Senha Provisória
-                                                    </button>
+                                                    </ButtonPrimary>
                                                 </div>
                                             </div>
                                         </>

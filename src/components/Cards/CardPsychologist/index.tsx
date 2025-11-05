@@ -4,6 +4,7 @@ interface Professional {
     id: string;
     name: string;
     color: string;
+    bio: string;
 }
 
 interface CardPsychologistsProps {
@@ -20,7 +21,7 @@ interface CardPsychologistsProps {
 export function CardPsychologist({ 
     professional, 
     appointmentsToday, 
-    specialty, 
+    specialty,
     bio,
     isBlocked,
     onEdit,

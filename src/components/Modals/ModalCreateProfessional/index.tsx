@@ -83,12 +83,17 @@ export default function ModalCreateProfessional({
 
     useEffect(() => {
         if (editingProfessional) {
-            setFullName(editingProfessional.full_name);
-            setEmail(editingProfessional.email);
-            setPhone(editingProfessional.phone);
-            setBio(editingProfessional.bio);
-            setIsEnabled(editingProfessional.is_enabled);
-            setSpecialities(editingProfessional.specialities.map(s => s.id));
+            setFullName(editingProfessional.full_name || "");
+            setEmail(editingProfessional.email || "");
+            setPhone(editingProfessional.phone || "");
+            setBio(editingProfessional.bio || "");
+            setIsEnabled(editingProfessional.is_enabled !== false);
+            // Verificar se specialities existe e é um array antes de usar map
+            if (editingProfessional.specialities && Array.isArray(editingProfessional.specialities)) {
+                setSpecialities(editingProfessional.specialities.map(s => s.id));
+            } else {
+                setSpecialities([]);
+            }
         } else {
             clearForm();
         }
@@ -133,6 +138,16 @@ export default function ModalCreateProfessional({
             return;
         }
 
+        // Validar se pelo menos uma especialidade foi selecionada
+        if (specialities.length === 0) {
+            showToast(
+                "Erro!",
+                "Por favor, selecione pelo menos uma especialidade.",
+                "error"
+            );
+            return;
+        }
+
         setIsLoading(true);
         try {
             if (editingProfessional) {
@@ -169,6 +184,10 @@ export default function ModalCreateProfessional({
                     is_enabled,
                     specialities
                 };
+
+                console.log('Creating professional with data:', createData);
+                console.log('Specialities array:', specialities);
+                console.log('Available specialities:', availableSpecialities);
 
                 const response = await professionalService.postCreateProfessional(
                     createData,

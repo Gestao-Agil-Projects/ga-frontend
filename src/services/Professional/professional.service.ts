@@ -21,12 +21,7 @@ export const professionalService = {
         token: string
     ): Promise<{ status: number; data: TProfessionalData }> {
         try {
-            const response = await apiProfessional().post("/api/admin/professionals/", professionalData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
+            const response = await apiProfessional(token).post("/api/admin/professionals/", professionalData);
             return {
                 status: response.status,
                 data: response.data,
@@ -58,14 +53,8 @@ export const professionalService = {
         token: string
     ): Promise<{ status: number; data: TProfessionalData }> {
         try {
-            const response = await apiProfessional().patch(`/api/admin/professionals/${id}/toggle-status`, 
-                { is_enabled: isEnabled }, 
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                }
+            const response = await apiProfessional(token).patch(`/api/admin/professionals/${id}/toggle-status`, 
+                { is_enabled: isEnabled }
             );
             return {
                 status: response.status,

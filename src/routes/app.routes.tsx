@@ -10,6 +10,11 @@ import { userStore } from "../store/userStore";
 function RootRoute() {
   const { userAccountData } = userStore();
 
+  // Se for primeiro acesso, não navegar para dashboard/user
+  if (userAccountData?.is_first_access === true) {
+    return <Home />;
+  }
+
   if (userAccountData?.is_admin || (userAccountData as any)?.role === "admin" || (userAccountData as any)?.is_superuser) {
     return <Dashboard />;
   }
