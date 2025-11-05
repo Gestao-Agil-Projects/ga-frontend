@@ -10,4 +10,5 @@ export type TUserDto = {
 export type TUserAccountData = {
     access_token: string;
     is_admin: boolean;
+    is_first_access?: boolean;
 }

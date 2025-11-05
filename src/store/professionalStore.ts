@@ -13,7 +13,10 @@ interface ProfessionalStore {
 export const professionalStore = create<ProfessionalStore>((set) => ({
     professionals: [],
     
-    setProfessionals: (professionals) => set({ professionals }),
+    setProfessionals: (professionals) => {
+        console.log('Setting professionals in store:', professionals);
+        set({ professionals });
+    },
     
     addProfessional: (professional) =>
         set((state) => ({

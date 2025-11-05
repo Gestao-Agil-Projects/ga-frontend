@@ -161,4 +161,28 @@ export const userService = {
         }
     },
 
+    async getCurrentUser(token: string): Promise<{ status: number; data: any }> {
+        try {
+            const response = await apiUser(token).get("/api/users/me");
+            return {
+                status: response.status,
+                data: response.data,
+            };
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
+    async updateCurrentUser(userData: any, token: string): Promise<{ status: number; data: any }> {
+        try {
+            const response = await apiUser(token).patch("/api/users/me", userData);
+            return {
+                status: response.status,
+                data: response.data,
+            };
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
 };

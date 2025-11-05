@@ -6,6 +6,7 @@ import ButtonPrimary from "../../Buttons/ButtonPrimary";
 import Input from "../../Inputs/Input";
 import { userStore } from "../../../store/userStore";
 import { useToast } from "../../../contexts/ToastContext";
+import { userService } from "../../../services/User/user.service";
 
 Modal.setAppElement("#root");
 
@@ -97,19 +98,15 @@ export function ModalChangePassword({ isOpen, onClose, onSuccess }: ModalChangeP
         setIsLoading(true);
         try {
             // Fazer PATCH para /api/users/me com nova senha e is_first_access: false
-            const response = await fetch('http://localhost:8000/api/users/me', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userAccountData.access_token}`
-                },
-                body: JSON.stringify({
+            const response = await userService.updateCurrentUser(
+                {
                     password: newPassword,
                     is_first_access: false
-                })
-            });
+                },
+                userAccountData.access_token
+            );
 
-            if (!response.ok) {
+            if (response.status !== 200) {
                 throw new Error('Erro ao alterar senha');
             }
 

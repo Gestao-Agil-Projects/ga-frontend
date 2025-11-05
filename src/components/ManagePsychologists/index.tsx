@@ -3,6 +3,7 @@ import { Plus, Tag } from "lucide-react";
 import { CardPsychologist } from "../Cards/CardPsychologist";
 import ModalCreateSpeciality from "../Modals/ModalCreateSpeciality";
 import ModalCreateProfessional from "../Modals/ModalCreateProfessional";
+import ModalEditProfessional from "../Modals/ModalEditProfessional";
 import { professionalStore } from "../../store/professionalStore";
 import { professionalService } from "../../services/Professional/professional.service";
 import { specialityStore } from "../../store/specialityStore";
@@ -21,6 +22,7 @@ export function ManagePsychologists() {
     
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isProfessionalModalOpen, setIsProfessionalModalOpen] = useState(false);
+    const [isEditProfessionalModalOpen, setIsEditProfessionalModalOpen] = useState(false);
     const [editingProfessional, setEditingProfessional] = useState<TProfessionalData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     
@@ -43,7 +45,24 @@ export function ManagePsychologists() {
         try {
             const response = await professionalService.getProfessionals(userAccountData.access_token);
             if (response.status === 200) {
-                setProfessionals(response.data);
+                // A API retorna um array de objetos com estrutura { professional: {...}, is_blocked: ... }
+                // Precisamos extrair apenas os dados do professional e manter a estrutura
+                const professionalsData = response.data.map((item: any) => {
+                    // Se a estrutura já é direta, retorna como está
+                    if (item.full_name || item.id) {
+                        return item;
+                    }
+                    // Se tem a propriedade professional, extrai os dados
+                    if (item.professional) {
+                        return {
+                            ...item.professional,
+                            is_enabled: item.professional.is_enabled !== false,
+                            is_blocked: item.is_blocked || false
+                        };
+                    }
+                    return item;
+                });
+                setProfessionals(professionalsData);
             }
         } catch (error: any) {
             showToast(
@@ -60,7 +79,7 @@ export function ManagePsychologists() {
         const professional = professionals.find(p => p.id === id);
         if (professional) {
             setEditingProfessional(professional);
-            setIsProfessionalModalOpen(true);
+            setIsEditProfessionalModalOpen(true);
         }
     };
 
@@ -103,6 +122,9 @@ export function ManagePsychologists() {
             if (response.status === 201 || response.status === 200) {
                 addSpeciality(response.data);
                 setNewSpecialityTitle("");
+                // Recarregar dados após criar especialidade
+                fetchProfessionals();
+                fetchSpecialities();
                 showToast(
                     "Sucesso!",
                     "Especialidade criada com sucesso!",
@@ -137,6 +159,9 @@ export function ManagePsychologists() {
                 updateSpeciality(editingSpecialityId, response.data);
                 setEditingSpecialityId(null);
                 setEditingSpecialityTitle("");
+                // Recarregar dados após editar especialidade
+                fetchProfessionals();
+                fetchSpecialities();
                 showToast(
                     "Sucesso!",
                     "Especialidade atualizada com sucesso!",
@@ -257,23 +282,26 @@ export function ManagePsychologists() {
                         <div className="text-gray-600">Nenhum profissional encontrado</div>
                     </div>
                 ) : (
-                    professionals.map(professional => (
-                        <CardPsychologist
-                            key={professional.id}
-                            professional={{
-                                id: professional.id,
-                                name: professional.full_name,
-                                color: (professional.is_enabled !== false) ? "bg-blue-500" : "bg-red-500"
-                            }}
-                            appointmentsToday={0} // TODO: Implementar contagem de consultas
-                            specialty={formatSpecialities(professional.specialities)}
-                            bio={professional.bio}
-                            isBlocked={professional.is_enabled === false}
-                            onEdit={handleEdit}
-                            onToggleBlock={handleToggleBlock}
-                            onDelete={handleDelete}
-                        />
-                    ))
+                    professionals
+                        .filter(professional => professional && professional.id)
+                        .map(professional => (
+                            <CardPsychologist
+                                key={professional.id}
+                                professional={{
+                                    id: professional.id,
+                                    name: professional.full_name || "Nome não informado",
+                                    bio: professional.bio || "",
+                                    color: (professional.is_enabled !== false) ? "bg-blue-500" : "bg-red-500"
+                                }}
+                                appointmentsToday={0} // TODO: Implementar contagem de consultas
+                                specialty={formatSpecialities(professional.specialities || [])}
+                                bio={professional.bio || ""}
+                                isBlocked={professional.is_enabled === false}
+                                onEdit={handleEdit}
+                                onToggleBlock={handleToggleBlock}
+                                onDelete={handleDelete}
+                            />
+                        ))
                 )}
             </div>
 
@@ -387,8 +415,23 @@ export function ManagePsychologists() {
                 onClose={() => {
                     setIsProfessionalModalOpen(false);
                     setEditingProfessional(null);
+                    // Recarregar dados após fechar o modal
+                    fetchProfessionals();
+                    fetchSpecialities();
                 }}
                 editingProfessional={editingProfessional}
+            />
+
+            <ModalEditProfessional
+                isOpen={isEditProfessionalModalOpen}
+                onClose={() => {
+                    setIsEditProfessionalModalOpen(false);
+                    setEditingProfessional(null);
+                    // Recarregar dados após fechar o modal
+                    fetchProfessionals();
+                    fetchSpecialities();
+                }}
+                professional={editingProfessional}
             />
         </div>
     );

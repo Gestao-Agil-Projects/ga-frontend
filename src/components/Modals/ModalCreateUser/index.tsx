@@ -278,16 +278,6 @@ export function ModalCreateUser({ isOpen, onClose, userType }: ModalCreateUserPr
                             
                         </div>
 
-                        {/* Informação sobre senha padrão */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <span className="text-sm font-medium text-blue-800">Senha padrão: 123456</span>
-                            </div>
-                            <p className="text-xs text-blue-600">
-                                O usuário poderá alterar a senha após o primeiro login.
-                            </p>
-                        </div>
                     </div>
 
                     <div className="">
