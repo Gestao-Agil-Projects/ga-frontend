@@ -7,8 +7,8 @@ export function Home() {
   return (
     <>
         <Header />
-  <InitialSection />
-  <Professionals />
+        <InitialSection />
+        <Professionals />
         <Footer />
     </>
   );

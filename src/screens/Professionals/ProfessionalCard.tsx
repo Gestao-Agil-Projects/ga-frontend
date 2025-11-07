@@ -2,9 +2,25 @@ import { useState } from 'react';
 import type { Professional } from './mockProfessionals';
 import { Calendar } from 'lucide-react';
 import ModalAppointment from '../../components/Modals/ModalAppointment';
+import ModalLogin from '../../components/Modals/ModalLogin';
+import { userStore } from '../../store/userStore';
 
 export default function ProfessionalCard({ professional }: { professional: Professional }) {
+  const { userAccountData } = userStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const handleScheduleClick = () => {
+    // Se o usuário não estiver logado, abrir o modal de login
+    if (!userAccountData) {
+      setShowLoginModal(true);
+      return;
+    }
+    
+    // Usuário está logado: abrir modal de agendamento
+    setIsModalOpen(true);
+  };
+
   return (
   <article className="bg-white rounded-lg shadow-md border border-gray-100 p-6 flex flex-col h-full">
       <header className="flex items-start gap-4">
@@ -49,14 +65,20 @@ export default function ProfessionalCard({ professional }: { professional: Profe
           className="w-full inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg py-3 px-4 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-300" 
           type="button" 
           aria-label={`Agendar consulta com ${professional.name}`}
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleScheduleClick}
         >
           <Calendar className="w-4 h-4" />
           <span>Agendar Consulta</span>
         </button>
       </div>
 
-      {/* Modal de Agendamento */}
+      {/* Modal de Login (quando usuário não autenticado) */}
+      <ModalLogin
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+
+      {/* Modal de Agendamento (quando usuário autenticado) */}
       <ModalAppointment
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

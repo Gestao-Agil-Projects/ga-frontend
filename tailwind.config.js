@@ -37,6 +37,18 @@ module.exports = {
 
         "success": "#24A148",
 
+        // Cores do Figma
+        "figma-black": "#000",
+        "figma-gray": "#545454",
+        "figma-teal": "#01BDAE",
+        "figma-light-gray": "#EBEBEB",
+        "figma-white": "#FFF",
+        "figma-cyan": "#7DD4DC",
+        "figma-cyan-light": "#79D4DD",
+        "figma-cyan-alt": "#79d3db",
+        "figma-teal-dark": "#3DB0C5",
+        "figma-teal-alt": "#01BFAE",
+
         "overlay": "rgba(0, 0, 0, 0.5)",
         "white-transparent": "rgba(255, 255, 255, 0.96)",
         "transparent": "rgba(0,0,0,0)",
