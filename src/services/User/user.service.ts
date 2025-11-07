@@ -107,13 +107,28 @@ export const userService = {
         }
     },
 
-    async createPatient(patientData: CreatePatientData, token: string): Promise<{ status: number; data: UserData }> {
+    async createPatientByAdmin(patientData: CreatePatientData, token: string): Promise<{ status: number; data: UserData }> {
         try {
             const userData = {
                 ...patientData,
                 password: "123456" // Senha padrão
             };
             const response = await apiUser(token).post("/api/admin/users/register-patient", userData);
+            return {
+                status: response.status,
+                data: response.data,
+            };
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
+        async createPatientByUser(patientData: CreatePatientData, token: string): Promise<{ status: number; data: UserData }> {
+        try {
+            const userData = {
+                ...patientData,
+            };
+            const response = await apiUser(token).post("/api/auth/register", userData);
             return {
                 status: response.status,
                 data: response.data,

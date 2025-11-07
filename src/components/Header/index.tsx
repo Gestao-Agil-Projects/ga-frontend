@@ -4,26 +4,9 @@ import ModalLogin from "../Modals/ModalLogin";
 import { useState } from "react";
 import MobileMenu from "../Mobile/Menu";
 import { userStore } from "../../store/userStore";
-import logo from '../../assets/logo.png'
+import logo from "../../assets/logo.png";
 
-const navigationLinks = [
-  {
-    to: "/",
-    label: "Início"
-  },
-  {
-    to: "/professionals",
-    label: "Profissionais"
-  },
-  {
-    to: "/about", 
-    label: "Sobre"
-  },
-  {
-    to: "/contact",
-    label: "Contato"
-  }
-];
+const navigationLinks = [];
 
 export function Header() {
   const location = useLocation();
@@ -50,7 +33,7 @@ export function Header() {
 
   const handleUserButtonClick = () => {
     if (isLoggedIn) {
-      navigate('/user');
+      navigate("/user");
     } else {
       handleOpenModal();
     }
@@ -59,7 +42,7 @@ export function Header() {
   const handleLogout = () => {
     setUser(null);
     setUserAccountData(null);
-    navigate('/');
+    navigate("/");
   };
 
   const isActive = (path: string) => {
@@ -67,7 +50,8 @@ export function Header() {
   };
 
   const linkClasses = (path: string) => {
-    const baseClasses = "text-black hover:text-BLUE transition-colors px-3 py-2 rounded-md text-sm font-medium";
+    const baseClasses =
+      "text-black hover:text-BLUE transition-colors px-3 py-2 rounded-md text-sm font-medium";
     const activeClasses = isActive(path)
       ? "text-BLUE"
       : "text-black hover:text-BLUE";
@@ -86,12 +70,12 @@ export function Header() {
                 <img src={logo} alt="Logo" className="w-[110px] h-[49px]" />
               </Link>
             </div>
-            
+
             <nav className="hidden md:flex items-center space-x-8">
               {navigationLinks.map((link) => (
-                <Link 
+                <Link
                   key={link.to}
-                  to={link.to} 
+                  to={link.to}
                   className={linkClasses(link.to)}
                 >
                   {link.label}
@@ -104,13 +88,13 @@ export function Header() {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <User className="w-5 h-5 text-BLUE" />
-                    <button 
-                      className="text-black font-medium"
-                    >
-                      {user?.full_name || userAccountData?.email || 'João Silva'}
+                    <button className="text-black font-medium">
+                      {user?.full_name ||
+                        userAccountData?.email ||
+                        "João Silva"}
                     </button>
                   </div>
-                  <button 
+                  <button
                     onClick={handleLogout}
                     className="flex items-center space-x-2 px-3 py-2 text-black hover:text-red-600 hover:bg-red-50 rounded-md text-sm font-medium transition-colors"
                   >
@@ -119,7 +103,7 @@ export function Header() {
                   </button>
                 </div>
               ) : (
-                <button 
+                <button
                   onClick={handleOpenModal}
                   className="bg-gray-100 text-BLUE border border-GRAY w-auto hover:text-BLUE hover:bg-gray-200 flex items-center gap-2 transition-colors px-4 py-2 rounded-md text-sm font-medium"
                 >
@@ -141,16 +125,13 @@ export function Header() {
         </div>
       </header>
 
-      <MobileMenu 
+      <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={handleCloseMobileMenu}
         onLoginClick={handleOpenModal}
       />
 
-      <ModalLogin
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+      <ModalLogin isOpen={isModalOpen} onClose={handleCloseModal} />
     </>
   );
 }
