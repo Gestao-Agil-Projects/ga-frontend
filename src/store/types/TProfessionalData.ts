@@ -8,6 +8,4 @@ export interface TProfessionalData {
     bio: string;
     is_enabled: boolean;
     specialities: TSpecialityData[];
-    created_at: string;
-    updated_at: string;
 }

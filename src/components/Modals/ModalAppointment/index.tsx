@@ -1,193 +1,101 @@
-import { useState } from "react";
 import Modal from "react-modal";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { type Appointment } from "../../../data/appointments";
+import ButtonClose from "../../Buttons/ButtonClose";
+
+const professionals = [
+    { id: "1", name: "DRA. ANA SILVA", color: "bg-blue-500" },
+    { id: "2", name: "DR. CARLOS MENDES", color: "bg-gray-500" },
+    { id: "3", name: "DRA. MARIANA COSTA", color: "bg-green-500" }
+];
 
 interface ModalAppointmentProps {
     isOpen: boolean;
     onClose: () => void;
-    professionalName: string;
-    specialty: string;
+    onCancelAppointment: () => void;
+    selectedAppointment: Appointment | null;
 }
 
-interface TimeSlot {
-    time: string;
-    available: boolean;
-}
-
-export default function ModalAppointment({
-    isOpen,
-    onClose,
-    professionalName,
-    specialty
+export function ModalAppointment({ 
+    isOpen, 
+    onClose, 
+    onCancelAppointment, 
+    selectedAppointment 
 }: ModalAppointmentProps) {
-    const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-    const [selectedTime, setSelectedTime] = useState<string | null>(null);
-
-    const availableTimes: TimeSlot[] = [
-        { time: "09:00", available: true },
-        { time: "10:00", available: true },
-        { time: "14:00", available: true },
-        { time: "15:00", available: true },
-        { time: "16:00", available: true },
-    ];
-
-    const handlePreviousMonth = () => {
-        setCurrentMonth(prevMonth => {
-            const newMonth = new Date(prevMonth);
-            newMonth.setMonth(newMonth.getMonth() - 1);
-            return newMonth;
-        });
-    };
-
-    const handleNextMonth = () => {
-        setCurrentMonth(prevMonth => {
-            const newMonth = new Date(prevMonth);
-            newMonth.setMonth(newMonth.getMonth() + 1);
-            return newMonth;
-        });
-    };
-
-    const getCalendarDays = () => {
-        const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-        const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-        const days = [];
-
-        // Add empty cells for days before the first day of the month
-        for (let i = 0; i < firstDay.getDay(); i++) {
-            days.push(null);
-        }
-
-        // Add the days of the month
-        for (let i = 1; i <= lastDay.getDate(); i++) {
-            days.push(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i));
-        }
-
-        return days;
-    };
-
     return (
         <Modal
             isOpen={isOpen}
             onRequestClose={onClose}
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[420px] bg-white rounded-lg shadow-xl outline-none overflow-hidden font-['Open_Sans']"
-            overlayClassName="fixed inset-0 bg-[#000]/60 z-50"
-            contentLabel="Modal de Agendamento"
+            className="fixed inset-0 flex items-center justify-center p-4 z-50"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50"
         >
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#EBEBEB]">
-                <div>
-                    <button onClick={onClose} className="text-[#545454] hover:text-[#000] absolute top-4 right-6">
-                        <X className="w-5 h-5" />
-                    </button>
-                    <h2 className="text-[15px] font-[700] text-[#000]">
-                        Agendar Consulta
-                    </h2>
-                    <p className="text-[12px] font-[400] text-[#545454]">
-                        Agendamento com {professionalName}
-                        <br />• {specialty}
-                    </p>
-                </div>
-            </div>
-
-            <div className="p-6">
-                <p className="text-[13px] font-[600] text-[#000] mb-4">
-                    Escolha um dia disponível para sua consulta
-                </p>
-
-                {/* Calendar */}
-                <div className="bg-white rounded-lg">
-                    {/* Calendar Header */}
-                    <div className="flex justify-between items-center mb-4">
-                        <button
-                            onClick={handlePreviousMonth}
-                            className="p-1 hover:bg-[#EBEBEB] rounded"
-                        >
-                            <ChevronLeft className="w-5 h-5 text-[#545454]" />
-                        </button>
-                        <span className="text-[14px] font-[600] text-[#000]">
-                            {currentMonth.toLocaleDateString('default', { month: 'long', year: 'numeric' })}
-                        </span>
-                        <button
-                            onClick={handleNextMonth}
-                            className="p-1 hover:bg-[#EBEBEB] rounded"
-                        >
-                            <ChevronRight className="w-5 h-5 text-[#545454]" />
-                        </button>
+            {selectedAppointment && (
+                <div className="bg-[#f5f1eb] rounded-lg shadow-xl w-full max-w-md mx-4">
+                    <div className="flex justify-between items-center p-4 border-b">
+                        <h2 className="text-base font-semibold">Detalhes do Agendamento</h2>
+                        <ButtonClose onClose={onClose} />
                     </div>
-
-                    {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 gap-1 mb-4">
-                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                            <div
-                                key={day}
-                                className="text-center text-[12px] font-[600] text-[#545454] py-2"
-                            >
-                                {day}
+                
+                    <div className="p-4 space-y-3">
+                        <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
+                            {selectedAppointment.time} - {professionals.find(p => p.id === selectedAppointment.professionalId)?.name}
+                        </div>
+                        
+                        <div className="space-y-3">
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="font-medium text-gray-700 text-sm">Paciente</span>
+                                    <span className="text-xs text-green-600 font-medium">Status</span>
+                                </div>
+                                <div className="text-gray-900 font-medium text-sm">{selectedAppointment.patientName}</div>
+                                <div className="text-xs text-green-600 font-medium inline-flex items-center gap-1">
+                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                    Confirmado
+                                </div>
                             </div>
-                        ))}
-                        {getCalendarDays().map((date, index) => (
-                            <button
-                                key={index}
-                                onClick={() => date && setSelectedDate(date)}
-                                disabled={!date || date < new Date()}
-                                className={`
-                                    text-center py-2 text-[13px] rounded-lg
-                                    ${!date ? 'invisible' : ''}
-                                    ${date && date < new Date() ? 'text-[#545454] opacity-50 cursor-not-allowed' : ''}
-                                    ${date && date.toDateString() === selectedDate?.toDateString()
-                                        ? 'bg-[#018DAE] text-white font-[600]'
-                                        : date && date >= new Date()
-                                            ? 'hover:bg-[#EBEBEB] text-[#000]'
-                                            : ''
-                                    }
-                                `}
-                            >
-                                {date?.getDate()}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Time Slots */}
-                    {selectedDate && (
-                        <div className="mt-6">
-                            <p className="text-[13px] font-[600] text-[#000] mb-4">
-                                Horários para {selectedDate.toLocaleDateString()}
-                            </p>
-                            <div className="grid grid-cols-3 gap-2">
-                                {availableTimes.map((slot) => (
-                                    <button
-                                        key={slot.time}
-                                        onClick={() => setSelectedTime(slot.time)}
-                                        disabled={!slot.available}
-                                        className={`
-                                            py-2 px-4 rounded-lg text-[13px] font-[600]
-                                            ${selectedTime === slot.time
-                                                ? 'bg-[#018DAE] text-white'
-                                                : slot.available
-                                                    ? 'bg-[#EBEBEB] text-[#000] hover:bg-[#018DAE] hover:text-white'
-                                                    : 'bg-[#EBEBEB] text-[#545454] opacity-50 cursor-not-allowed'
-                                            }
-                                        `}
-                                    >
-                                        {slot.time}
-                                    </button>
-                                ))}
+                        
+                            {selectedAppointment.phone && (
+                                <div>
+                                    <div className="flex items-center gap-1 mb-1">
+                                        <span className="text-xs">📞</span>
+                                        <span className="font-medium text-gray-700 text-xs">Telefone</span>
+                                    </div>
+                                    <div className="text-gray-900 text-sm">{selectedAppointment.phone}</div>
+                                </div>
+                            )}
+                        
+                            {selectedAppointment.email && (
+                                <div>
+                                    <div className="flex items-center gap-1 mb-1">
+                                        <span className="text-xs">✉️</span>
+                                        <span className="font-medium text-gray-700 text-xs">Email</span>
+                                    </div>
+                                    <div className="text-gray-900 text-sm">{selectedAppointment.email}</div>
+                                </div>
+                            )}
+                        
+                            <div>
+                                <span className="font-medium text-gray-700 text-xs">Duração</span>
+                                <div className="text-gray-900 text-sm">{selectedAppointment.duration} minutos</div>
                             </div>
                         </div>
-                    )}
-
-                    {/* Confirm Button */}
-                    {selectedDate && selectedTime && (
-                        <button
-                            className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-[#79D3db] to-[#018DAE] text-white font-[700] text-[15px] rounded-lg shadow-sm transition-all hover:opacity-90"
-                        >
-                            Confirmar Agendamento
-                        </button>
-                    )}
+                        
+                        <div className="flex gap-2 pt-3">
+                            <button
+                                onClick={onCancelAppointment}
+                                className="flex-1 bg-red-500 text-white py-2 px-3 rounded-lg hover:bg-red-600 font-medium transition-colors text-xs"
+                            >
+                                Cancelar Agendamento
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="flex-1 bg-blue-500 text-white py-2 px-3 rounded-lg hover:bg-blue-600 font-medium transition-colors text-xs"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </Modal>
     );
 }
-

@@ -13,6 +13,7 @@ interface InputProps {
     className?: string;
     inputDate?: boolean;
     onDateChange?: (date: Date | null) => void;
+    calendarPosition?: "top" | "bottom";
 }
 
 export default function Input({ 
@@ -25,7 +26,8 @@ export default function Input({
     disabled = false,
     className = "w-full px-4 py-1 border border-neutral-10 rounded-lg focus:outline-none bg-white placeholder:text-sm",
     inputDate = false,
-    onDateChange
+    onDateChange,
+    calendarPosition = "bottom"
 }: InputProps) {
     const {
         isDatePickerOpen,
@@ -60,12 +62,16 @@ export default function Input({
                         onClick={toggleDatePicker}
                     />
                     
-                    <DatePicker
-                        value={value}
-                        onDateSelect={handleDateSelect}
-                        isOpen={isDatePickerOpen}
-                        onClose={closeDatePicker}
-                    />
+                    {isDatePickerOpen && (
+                        <div className={`absolute left-0 ${calendarPosition === "top" ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"} z-50`}>
+                            <DatePicker
+                                value={value}
+                                onDateSelect={handleDateSelect}
+                                isOpen={isDatePickerOpen}
+                                onClose={closeDatePicker}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         );

@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Modal from "react-modal";
 import { UserPlus, X } from "lucide-react";
 import ButtonClose from "../../Buttons/ButtonClose";
 import ButtonPrimary from "../../Buttons/ButtonPrimary";
 import Input from "../../Inputs/Input";
-import { SpecialityDropdown } from "../../Dropdown/SpecialityDropdown";
 import { createProfessionalStore } from "../../../store/createProfessionalStore";
 import { professionalStore } from "../../../store/professionalStore";
 import { specialityStore } from "../../../store/specialityStore";
@@ -51,20 +50,7 @@ export default function ModalCreateProfessional({
     
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingSpecialities, setIsLoadingSpecialities] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    const updateDropdownPosition = () => {
-        if (inputRef.current) {
-            const rect = inputRef.current.getBoundingClientRect();
-            setDropdownPosition({
-                top: rect.bottom + window.scrollY,
-                left: rect.left + window.scrollX,
-                width: rect.width
-            });
-        }
-    };
+    const [selectedSpecialtyOption, setSelectedSpecialtyOption] = useState("");
 
     useEffect(() => {
         if (isOpen && userAccountData?.access_token) {
@@ -73,22 +59,18 @@ export default function ModalCreateProfessional({
     }, [isOpen, userAccountData?.access_token]);
 
     useEffect(() => {
-        if (searchTerm.trim()) {
-            updateDropdownPosition();
-            const handleResize = () => updateDropdownPosition();
-            window.addEventListener('resize', handleResize);
-            return () => window.removeEventListener('resize', handleResize);
-        }
-    }, [searchTerm]);
-
-    useEffect(() => {
         if (editingProfessional) {
-            setFullName(editingProfessional.full_name);
-            setEmail(editingProfessional.email);
-            setPhone(editingProfessional.phone);
-            setBio(editingProfessional.bio);
-            setIsEnabled(editingProfessional.is_enabled);
-            setSpecialities(editingProfessional.specialities.map(s => s.id));
+            setFullName(editingProfessional.full_name || "");
+            setEmail(editingProfessional.email || "");
+            setPhone(editingProfessional.phone || "");
+            setBio(editingProfessional.bio || "");
+            setIsEnabled(editingProfessional.is_enabled !== false);
+            // Verificar se specialities existe e é um array antes de usar map
+            if (editingProfessional.specialities && Array.isArray(editingProfessional.specialities)) {
+                setSpecialities(editingProfessional.specialities.map(s => s.id));
+            } else {
+                setSpecialities([]);
+            }
         } else {
             clearForm();
         }
@@ -133,13 +115,21 @@ export default function ModalCreateProfessional({
             return;
         }
 
+        // Validar se pelo menos uma especialidade foi selecionada
+        if (specialities.length === 0) {
+            showToast(
+                "Erro!",
+                "Por favor, selecione pelo menos uma especialidade.",
+                "error"
+            );
+            return;
+        }
+
         setIsLoading(true);
         try {
             if (editingProfessional) {
                 const updateData: TUpdateProfessionalData = {
                     full_name: full_name.trim(),
-                    email: email.trim(),
-                    phone: phone.trim(),
                     bio: bio.trim(),
                     is_enabled,
                     specialities
@@ -169,6 +159,10 @@ export default function ModalCreateProfessional({
                     is_enabled,
                     specialities
                 };
+
+                console.log('Creating professional with data:', createData);
+                console.log('Specialities array:', specialities);
+                console.log('Available specialities:', availableSpecialities);
 
                 const response = await professionalService.postCreateProfessional(
                     createData,
@@ -203,21 +197,17 @@ export default function ModalCreateProfessional({
         setSpecialities(newSpecialities);
     };
 
-    const filteredSpecialities = searchTerm.trim() 
-        ? availableSpecialities.filter(speciality =>
-            speciality.title.toLowerCase().includes(searchTerm.toLowerCase()))
-        : [];
-
     const handleSpecialitySelect = (specialityId: string) => {
+        if (!specialityId) return;
         if (!specialities.includes(specialityId)) {
             setSpecialities([...specialities, specialityId]);
         }
-        setSearchTerm("");
+        setSelectedSpecialtyOption("");
     };
 
     const handleClose = () => {
         clearForm();
-        setSearchTerm("");
+        setSelectedSpecialtyOption("");
         onClose();
     };
 
@@ -229,7 +219,7 @@ export default function ModalCreateProfessional({
             overlayClassName="modal-overlay"
             contentLabel="Modal de Gerenciar Profissional"
         >
-            <div className="bg-neutral-09 rounded-card shadow-card w-full max-w-[600px] mx-4 max-h-[90vh] flex flex-col">
+            <div className="bg-[#f5f1eb] rounded-lg shadow-xl w-[380px] lg:w-[600px] mx-4 max-h-[90vh] flex flex-col">
                 <div className="flex justify-between items-center px-6 py-4">
                     <div className="flex flex-row items-center gap-2">
                         <UserPlus className="w-5 h-5 text-primary" />
@@ -297,17 +287,28 @@ export default function ModalCreateProfessional({
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Buscar Especialidades
+                                Selecionar Especialidade
                             </label>
-                            <div className="relative" ref={inputRef}>
-                                <Input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Buscar especialidades..."
-                                    label=""
-                                />
-                            </div>
+                            {isLoadingSpecialities ? (
+                                <div className="text-sm text-gray-600">Carregando especialidades...</div>
+                            ) : (
+                                <select
+                                    value={selectedSpecialtyOption}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setSelectedSpecialtyOption(value);
+                                        handleSpecialitySelect(value);
+                                    }}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">Selecione uma especialidade</option>
+                                    {availableSpecialities.map((speciality) => (
+                                        <option key={speciality.id} value={speciality.id}>
+                                            {speciality.title}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
 
                         {specialities.length > 0 && (
@@ -350,15 +351,6 @@ export default function ModalCreateProfessional({
                 </div>
             </div>
             
-            <SpecialityDropdown
-                isVisible={searchTerm.trim().length > 0}
-                position={dropdownPosition}
-                isLoadingSpecialities={isLoadingSpecialities}
-                filteredSpecialities={filteredSpecialities}
-                specialities={specialities}
-                handleSpecialitySelect={handleSpecialitySelect}
-                showEditButtons={false}
-            />
         </Modal>
     );
 }

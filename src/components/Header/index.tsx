@@ -4,26 +4,7 @@ import ModalLogin from "../Modals/ModalLogin";
 import { useState } from "react";
 import MobileMenu from "../Mobile/Menu";
 import { userStore } from "../../store/userStore";
-import logo from "../../assets/logoclinica.png";
-
-const navigationLinks = [
-  {
-    to: "/",
-    label: "Início"
-  },
-  {
-    to: "/professionals",
-    label: "Profissionais"
-  },
-  {
-    to: "/about", 
-    label: "Sobre"
-  },
-  {
-    to: "/contact",
-    label: "Contato"
-  }
-];
+import logo from '../../assets/logo.png'
 
 export function Header() {
   const location = useLocation();
@@ -67,85 +48,40 @@ export function Header() {
   };
 
   const linkClasses = (path: string) => {
-    const baseClasses = "text-gray-600 hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium";
+    const baseClasses = "text-black hover:text-BLUE transition-colors px-3 py-2 rounded-md text-sm font-medium";
     const activeClasses = isActive(path)
-      ? "text-primary" 
-      : "text-gray-700 hover:text-primary";
-    
+      ? "text-BLUE"
+      : "text-black hover:text-BLUE";
     return `${baseClasses} ${activeClasses}`;
   };
 
   const isLoggedIn = userAccountData?.access_token;
 
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return false;
-    const headerHeight = document.querySelector('header')?.clientHeight ?? 0;
-    const top = window.scrollY + el.getBoundingClientRect().top - headerHeight - 12;
-    window.scrollTo({ top, behavior: 'smooth' });
-    return true;
-  };
-
   return (
     <>
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center">
-                <img src={logo} alt="Viva Espaço Terapêutico" className="h-10 w-auto" />
+              <Link to="/" className="text-2xl">
+                <img src={logo} alt="Logo" className="w-[110px] h-[49px]" />
               </Link>
             </div>
-            
-            <nav className="hidden md:flex items-center space-x-6">
-              {navigationLinks.map((link) => {
-                if (link.to === '/professionals') {
-                  return (
-                    <button
-                      key={link.to}
-                      onClick={(e) => {
-                        if (location.pathname === '/') {
-                          e.preventDefault();
-                          const ok = scrollToSection('professionals-section');
-                          if (!ok) navigate('/professionals');
-                        } else {
-                          navigate('/professionals');
-                        }
-                      }}
-                      className={linkClasses(link.to)}
-                    >
-                      {link.label}
-                    </button>
-                  );
-                }
-
-                return (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className={linkClasses(link.to)}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
 
             <div className="hidden lg:flex space-x-4 items-center">
               {isLoggedIn ? (
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
-                    <User className="w-5 h-5 text-blue-600" />
+                    <User className="w-5 h-5 text-BLUE" />
                     <button 
-                      onClick={handleUserButtonClick}
-                      className="text-neutral-22 hover:text-primary font-medium"
+                      className="text-black font-medium"
                     >
                       {user?.full_name || userAccountData?.email || 'João Silva'}
                     </button>
                   </div>
                   <button 
                     onClick={handleLogout}
-                    className="flex items-center space-x-2 px-3 py-2 text-neutral-19 hover:text-red-600 hover:bg-red-50 rounded-md text-sm font-medium transition-colors"
+                    className="flex items-center space-x-2 px-3 py-2 text-black hover:text-red-600 hover:bg-red-50 rounded-md text-sm font-medium transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Sair</span>
@@ -154,10 +90,10 @@ export function Header() {
               ) : (
                 <button 
                   onClick={handleOpenModal}
-                  className="bg-neutral-11 text-neutral-22 hover:bg-neutral-10 flex items-center gap-2 transition-colors px-4 py-2 rounded-md text-sm font-medium"
+                  className="bg-gray-100 text-BLUE border border-GRAY w-auto hover:text-BLUE hover:bg-gray-200 flex items-center gap-2 transition-colors px-4 py-2 rounded-md text-sm font-medium"
                 >
-                  <User className="w-4 h-4" />
-                  <span>Login</span>
+                  <User className="w-4 h-4 text-BLUE" />
+                  <span className="text-BLUE">Login</span>
                 </button>
               )}
             </div>
@@ -165,9 +101,9 @@ export function Header() {
             <div className="lg:hidden">
               <button
                 onClick={handleOpenMobileMenu}
-                className="text-gray-600 hover:text-primary transition-colors p-2"
+                className="text-black hover:text-BLUE transition-colors p-2"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-6 h-6 text-BLUE" />
               </button>
             </div>
           </div>

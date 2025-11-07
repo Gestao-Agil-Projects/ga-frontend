@@ -87,38 +87,31 @@ export function ModalCreateUser({ isOpen, onClose, userType }: ModalCreateUserPr
                 return dateStr;
             };
 
-            const userData = {
+            const commonData = {
                 full_name: fullName.trim(),
                 email: email.trim(),
                 phone: cleanPhone(phone),
                 cpf: cleanCPF(cpf),
                 birth_date: formatDateForAPI(birthDate.trim()),
                 bio: bio.trim(),
-                ...(selectedUserType === 'patient' && { frequency })
             };
 
-            console.log('Dados sendo enviados:', userData);
+            console.log('Dados sendo enviados:', commonData);
 
-            // Sempre criar como paciente primeiro
-            const response = await userService.createPatient(userData, userAccountData.access_token);
+            let response;
+            if (selectedUserType === 'admin') {
+                response = await userService.createAdmin(commonData, userAccountData.access_token);
+            } else {
+                response = await userService.createPatientByAdmin(
+                    {
+                        ...commonData,
+                        frequency
+                    },
+                    userAccountData.access_token
+                );
+            }
 
             if (response.status === 201 || response.status === 200) {
-                // Se for admin, fazer PATCH para definir is_superuser = true
-                if (selectedUserType === 'admin') {
-                    try {
-                        console.log('Atualizando usuário para admin:', response.data.id);
-                        await userService.updateUserToAdmin(response.data.id, userAccountData.access_token);
-                        console.log('Usuário atualizado para admin com sucesso');
-                    } catch (adminError) {
-                        console.error('Erro ao atualizar para admin:', adminError);
-                        showToast(
-                            "Aviso!",
-                            "Usuário criado, mas erro ao definir como administrador. Você pode editar manualmente.",
-                            "warning"
-                        );
-                    }
-                }
-                
                 addUser(response.data);
                 showToast(
                     "Sucesso!",
@@ -164,7 +157,7 @@ export function ModalCreateUser({ isOpen, onClose, userType }: ModalCreateUserPr
             overlayClassName="modal-overlay"
             contentLabel="Modal de Criar Usuário"
         >
-            <div className="bg-neutral-09 rounded-card shadow-card w-full max-w-[500px] mx-4">
+            <div className="bg-[#f5f1eb] rounded-lg shadow-xl w-[380px] lg:w-[500px] mx-4">
                 <div className="flex justify-between items-center px-6 py-4">
                     <div className="flex flex-row items-center gap-2">
                         <UserPlus className="w-5 h-5 text-primary" />
@@ -278,16 +271,6 @@ export function ModalCreateUser({ isOpen, onClose, userType }: ModalCreateUserPr
                             
                         </div>
 
-                        {/* Informação sobre senha padrão */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <span className="text-sm font-medium text-blue-800">Senha padrão: 123456</span>
-                            </div>
-                            <p className="text-xs text-blue-600">
-                                O usuário poderá alterar a senha após o primeiro login.
-                            </p>
-                        </div>
                     </div>
 
                     <div className="">

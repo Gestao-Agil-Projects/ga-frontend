@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Home } from "../screens/Home";
 import { About } from "../screens/About";
 import { Contact } from "../screens/Contact";
@@ -11,6 +11,11 @@ import { userStore } from "../store/userStore";
 
 function RootRoute() {
   const { userAccountData } = userStore();
+
+  // Se for primeiro acesso, não navegar para dashboard/user
+  if (userAccountData?.is_first_access === true) {
+    return <Home />;
+  }
 
   if (userAccountData?.is_admin || (userAccountData as any)?.role === "admin" || (userAccountData as any)?.is_superuser) {
     return <Dashboard />;
@@ -41,6 +46,7 @@ export function AppRoutes() {
       />
       <Route path="/user" element={<User />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

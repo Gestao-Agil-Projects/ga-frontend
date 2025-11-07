@@ -16,17 +16,24 @@ export const professionalService = {
         }
     },
 
+    async getPatientProfessionals(token: string, limit: number = 50, offset: number = 0): Promise<{ status: number; data: any }> {
+        try {
+            const response = await apiProfessional(token).get(`/api/professionals/?limit=${limit}&offset=${offset}`);
+            return {
+                status: response.status,
+                data: response.data,
+            };
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
     async postCreateProfessional(
         professionalData: TCreateProfessionalData,
         token: string
     ): Promise<{ status: number; data: TProfessionalData }> {
         try {
-            const response = await apiProfessional().post("/api/admin/professionals/", professionalData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
+            const response = await apiProfessional(token).post("/api/admin/professionals/", professionalData);
             return {
                 status: response.status,
                 data: response.data,
@@ -58,14 +65,8 @@ export const professionalService = {
         token: string
     ): Promise<{ status: number; data: TProfessionalData }> {
         try {
-            const response = await apiProfessional().patch(`/api/admin/professionals/${id}/toggle-status`, 
-                { is_enabled: isEnabled }, 
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                }
+            const response = await apiProfessional(token).patch(`/api/admin/professionals/${id}/toggle-status`, 
+                { is_enabled: isEnabled }
             );
             return {
                 status: response.status,

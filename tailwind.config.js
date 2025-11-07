@@ -49,6 +49,15 @@ module.exports = {
         "figma-teal-dark": "#3DB0C5",
         "figma-teal-alt": "#01BFAE",
 
+        "BLUE": "#018DAE",
+        "BLUE2" : "#7DD4DC",
+        "BLUE3" : "#79D4DD",
+        "BLUE4": "#79D3DB",
+
+        "GRAY": "#D9D9D9",
+        "GRAY2" : "#EBEBEB",
+        "GRAY3" : "#2D2D2D",
+
         "overlay": "rgba(0, 0, 0, 0.5)",
         "white-transparent": "rgba(255, 255, 255, 0.96)",
         "transparent": "rgba(0,0,0,0)",

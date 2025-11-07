@@ -17,18 +17,14 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)]">
       <Header />
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl text-blue-600 mb-2">Dashboard Administrativo</h1>
-              <p className="text-gray-600 text-sm">Gerencie psicólogos e agendamentos</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Settings className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-900">Calm Mind Admin</span>
+              <h1 className="text-2xl font-semibold text-[var(--color-primary)] mb-2">Dashboard Administrativo</h1>
+              <p className="text-sm text-[var(--color-text-secondary)]">Gerencie psicólogos e agendamentos</p>
             </div>
           </div>
         </div>
@@ -38,25 +34,25 @@ export function Dashboard() {
             title="Total de Usuários"
             value="4"
             icon={<User className="w-4 h-4" />}
-            color="text-blue-600"
+            color="text-[var(--color-primary)]"
           />
           <CardDashboard
             title="Pacientes"
             value="3"
             icon={<UserPlus className="w-4 h-4" />}
-            color="text-green-600"
+            color="text-[var(--color-primary-light)]"
           />
           <CardDashboard
             title="Administrativos"
             value="1"
             icon={<Shield className="w-4 h-4" />}
-            color="text-purple-600"
+            color="text-[var(--color-primary-lighter)]"
           />
           <CardDashboard
             title="Consultas Hoje"
             value="7"
             icon={<Calendar className="w-4 h-4" />}
-            color="text-blue-600"
+            color="text-[var(--color-primary)]"
           />
         </div>
 
@@ -65,6 +61,9 @@ export function Dashboard() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           className="mb-6"
+          activeTabClassName="text-[var(--color-primary)] font-semibold"
+          inactiveTabClassName="text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]"
+          indicatorClassName="bg-[var(--color-surface)] shadow-sm border border-[var(--color-primary-lighter)]"
         />
 
         {activeTab === "agenda" ? (

@@ -13,6 +13,10 @@ export const userStore = create<TUserDto>()(
             userAccountData: null,
             setUserAccountData: (userAccountData: TUserAccountData | null) =>
                 set({ userAccountData: userAccountData }),
+
+            currentUserData: null,
+            setCurrentUserData: (userData: TUserData | null) =>
+                set({ currentUserData: userData }),
         }),
         {
             name: "user-store",

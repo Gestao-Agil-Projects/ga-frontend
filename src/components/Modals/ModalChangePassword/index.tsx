@@ -6,6 +6,7 @@ import ButtonPrimary from "../../Buttons/ButtonPrimary";
 import Input from "../../Inputs/Input";
 import { userStore } from "../../../store/userStore";
 import { useToast } from "../../../contexts/ToastContext";
+import { userService } from "../../../services/User/user.service";
 
 Modal.setAppElement("#root");
 
@@ -97,19 +98,15 @@ export function ModalChangePassword({ isOpen, onClose, onSuccess }: ModalChangeP
         setIsLoading(true);
         try {
             // Fazer PATCH para /api/users/me com nova senha e is_first_access: false
-            const response = await fetch('http://localhost:8000/api/users/me', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userAccountData.access_token}`
-                },
-                body: JSON.stringify({
+            const response = await userService.updateCurrentUser(
+                {
                     password: newPassword,
                     is_first_access: false
-                })
-            });
+                },
+                userAccountData.access_token
+            );
 
-            if (!response.ok) {
+            if (response.status !== 200) {
                 throw new Error('Erro ao alterar senha');
             }
 
@@ -145,7 +142,7 @@ export function ModalChangePassword({ isOpen, onClose, onSuccess }: ModalChangeP
             overlayClassName="modal-overlay"
             contentLabel="Modal de Alterar Senha"
         >
-            <div className="bg-neutral-09 rounded-card shadow-card w-full max-w-[500px] mx-4">
+            <div className="bg-[#f5f1eb] rounded-lg shadow-xl w-[380px] lg:w-[500px] mx-4">
                 <div className="flex justify-between items-center px-6 py-4">
                     <div className="flex flex-row items-center gap-2">
                         <Lock className="w-5 h-5 text-primary" />

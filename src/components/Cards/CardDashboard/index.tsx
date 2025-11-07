@@ -9,14 +9,14 @@ interface CardDashboardProps {
 
 export function CardDashboard({ title, value, icon, color }: CardDashboardProps) {
     return (
-        <div className="bg-white rounded-lg shadow-sm border p-4 flex-1">
+        <div className="bg-[var(--color-surface)] rounded-xl shadow-sm border border-[var(--color-border)] p-4 flex-1">
             <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-700">{title}</h3>
+                <h3 className="text-sm font-medium text-[var(--color-text-secondary)]">{title}</h3>
                 <div className={`${color}`}>
                     {icon}
                 </div>
             </div>
-            <div className={`text-2xl ${color}`}>
+            <div className={`text-2xl font-semibold ${color}`}>
                 {value}
             </div>
         </div>

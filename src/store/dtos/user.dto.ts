@@ -5,13 +5,13 @@ export type TUserDto = {
     setUser: (user: TUserData | null) => void;
     userAccountData: TUserAccountData | null;
     setUserAccountData: (userAccountData: TUserAccountData | null) => void;
+    currentUserData: TUserData | null;
+    setCurrentUserData: (userData: TUserData | null) => void;
 }
 
 export type TUserAccountData = {
     access_token: string;
-    token_type?: string;
-    is_admin?: boolean;
-    is_superuser?: boolean;
-    role?: string;
-    email?: string;
+    is_admin: boolean;
+    is_first_access?: boolean;
+    is_superuser: boolean;
 }
