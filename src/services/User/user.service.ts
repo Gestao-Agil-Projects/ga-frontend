@@ -9,6 +9,7 @@ export interface CreatePatientData {
     image_url?: string;
     bio?: string;
     frequency?: string;
+    password?: string;
 }
 
 export interface CreateAdminData {
@@ -107,13 +108,41 @@ export const userService = {
         }
     },
 
+    async registerUser(userData: CreatePatientData): Promise<{ status: number; data: any }> {
+        try {
+            const response = await apiUser().post("/api/auth/register", userData);
+            return {
+                status: response.status,
+                data: response.data,
+            };
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
     async createPatient(patientData: CreatePatientData, token: string): Promise<{ status: number; data: UserData }> {
         try {
             const userData = {
                 ...patientData,
-                password: "123456" // Senha padrão
+                password: patientData.password || "123456"
             };
             const response = await apiUser(token).post("/api/admin/users/register-patient", userData);
+            return {
+                status: response.status,
+                data: response.data,
+            };
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
+    async createAdmin(adminData: CreateAdminData & { password?: string }, token: string): Promise<{ status: number; data: UserData }> {
+        try {
+            const payload = {
+                ...adminData,
+                password: adminData.password || "123456"
+            };
+            const response = await apiUser(token).post("/api/admin/users/register-admin", payload);
             return {
                 status: response.status,
                 data: response.data,

@@ -71,8 +71,10 @@ export function ManageUsers() {
         setFilteredUsers(filtered);
     };
 
-    const getRoleColor = (is_superuser: boolean) => {
-        return is_superuser ? 'bg-purple-200 text-purple-800 border border-purple-300' : 'bg-blue-100 text-blue-800';
+    const getRolePillClasses = (is_superuser: boolean) => {
+        return is_superuser
+            ? 'bg-[rgba(1,141,174,0.18)] text-[var(--color-primary)] border border-[var(--color-primary)]'
+            : 'bg-[rgba(125,212,220,0.25)] text-[var(--color-text-secondary)] border border-[rgba(125,212,220,0.6)]';
     };
 
     const getRoleLabel = (is_superuser: boolean) => {
@@ -142,19 +144,19 @@ export function ManageUsers() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 text-[var(--color-text-primary)]">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Gerenciar Usuários</h1>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <h1 className="text-2xl font-bold text-[var(--color-primary)]">Gerenciar Usuários</h1>
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">
                         Visualize e gerencie pacientes e administrativos
                     </p>
                 </div>
                 
                 <button 
                     onClick={handleCreateUser}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--color-primary-light)] transition-colors flex items-center gap-2 shadow-sm"
                 >
                     <UserPlus className="w-4 h-4" />
                     Novo Usuário
@@ -162,16 +164,16 @@ export function ManageUsers() {
             </div>
 
             {/* Search and Filters */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="bg-[var(--color-surface)] rounded-xl shadow-sm border border-[var(--color-border)] p-6">
                 <div className="flex flex-col lg:flex-row gap-4 mb-6">
                     <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]/70" />
                         <input
                             type="text"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Buscar usuário por nome ou e-mail..."
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]/70 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                         />
                     </div>
                 </div>
@@ -182,8 +184,8 @@ export function ManageUsers() {
                         onClick={() => setActiveFilter('all')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             activeFilter === 'all' 
-                                ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-[rgba(1,141,174,0.18)] text-[var(--color-primary)] border border-[var(--color-primary)]' 
+                                : 'bg-[var(--color-background)] text-[var(--color-text-secondary)] hover:bg-[rgba(125,212,220,0.25)]'
                         }`}
                     >
                         Todos ({users.length})
@@ -192,8 +194,8 @@ export function ManageUsers() {
                         onClick={() => setActiveFilter('patients')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             activeFilter === 'patients' 
-                                ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-[rgba(1,141,174,0.18)] text-[var(--color-primary)] border border-[var(--color-primary)]' 
+                                : 'bg-[var(--color-background)] text-[var(--color-text-secondary)] hover:bg-[rgba(125,212,220,0.25)]'
                         }`}
                     >
                         Pacientes ({users.filter(u => !u.is_superuser).length})
@@ -202,8 +204,8 @@ export function ManageUsers() {
                         onClick={() => setActiveFilter('admins')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             activeFilter === 'admins' 
-                                ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-[rgba(1,141,174,0.18)] text-[var(--color-primary)] border border-[var(--color-primary)]' 
+                                : 'bg-[var(--color-background)] text-[var(--color-text-secondary)] hover:bg-[rgba(125,212,220,0.25)]'
                         }`}
                     >
                         Administrativos ({users.filter(u => u.is_superuser).length})
@@ -215,36 +217,36 @@ export function ManageUsers() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {isLoading ? (
                     <div className="col-span-2 text-center py-8">
-                        <div className="text-gray-600">Carregando usuários...</div>
+                        <div className="text-[var(--color-text-secondary)]">Carregando usuários...</div>
                     </div>
                 ) : filteredUsers.length === 0 ? (
                     <div className="col-span-2 text-center py-8">
-                        <div className="text-gray-600">Nenhum usuário encontrado</div>
+                        <div className="text-[var(--color-text-secondary)]">Nenhum usuário encontrado</div>
                     </div>
                 ) : (
                     filteredUsers.map((user) => (
-                        <div key={user.id} className={`rounded-lg shadow-sm border p-6 ${
+                        <div key={user.id} className={`rounded-xl shadow-sm border p-6 ${
                             user.is_superuser 
-                                ? 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200' 
-                                : 'bg-white border-gray-200'
+                                ? 'bg-gradient-to-br from-[rgba(1,141,174,0.09)] to-[rgba(125,212,220,0.25)] border-[var(--color-primary-lighter)]' 
+                                : 'bg-[var(--color-surface)] border-[var(--color-border)]'
                         }`}>
                             {/* User Header */}
                             <div className="flex items-start gap-4 mb-4">
                                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                                     user.is_superuser 
-                                        ? 'bg-purple-200' 
-                                        : 'bg-gray-200'
+                                        ? 'bg-[rgba(1,141,174,0.15)]' 
+                                        : 'bg-[rgba(125,212,220,0.25)]'
                                 }`}>
                                     {user.is_superuser ? (
-                                        <Shield className="w-6 h-6 text-purple-600" />
+                                        <Shield className="w-6 h-6 text-[var(--color-primary)]" />
                                     ) : (
-                                        <User className="w-6 h-6 text-gray-500" />
+                                        <User className="w-6 h-6 text-[var(--color-text-secondary)]" />
                                     )}
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="font-semibold text-gray-900">{user.full_name}</h3>
-                                        <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${getRoleColor(user.is_superuser || false)}`}>
+                                        <h3 className="font-semibold text-[var(--color-text-primary)]">{user.full_name}</h3>
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${getRolePillClasses(user.is_superuser || false)}`}>
                                             {user.is_superuser && <Shield className="w-3 h-3" />}
                                             {getRoleLabel(user.is_superuser || false)}
                                         </span>
@@ -252,31 +254,31 @@ export function ManageUsers() {
                                     
                                     {/* Contact Info */}
                                     <div className={`space-y-1 text-sm ${
-                                        user.is_superuser ? 'text-purple-700' : 'text-gray-600'
+                                        user.is_superuser ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'
                                     }`}>
                                         {user.email && (
                                             <div className="flex items-center gap-2">
-                                                <Mail className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
+                                                <Mail className={`w-3 h-3 ${user.is_superuser ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)]/70'}`} />
                                                 <span>{user.email}</span>
                                             </div>
                                         )}
 
                                         {user.phone && (
                                             <div className="flex items-center gap-2">
-                                                <Phone className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
+                                                <Phone className={`w-3 h-3 ${user.is_superuser ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)]/70'}`} />
                                                 <span>{user.phone}</span>
                                             </div>
                                         )}
 
                                         {user.cpf && (
                                             <div className="flex items-center gap-2">
-                                                <FileText className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
+                                                <FileText className={`w-3 h-3 ${user.is_superuser ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)]/70'}`} />
                                                 <span>{user.cpf}</span>
                                             </div>
                                         )}
                                         {user.created_at && (
                                             <div className="flex items-center gap-2">
-                                                <Calendar className={`w-3 h-3 ${user.is_superuser ? 'text-purple-600' : 'text-gray-500'}`} />
+                                                <Calendar className={`w-3 h-3 ${user.is_superuser ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)]/70'}`} />
                                                 <span>Cadastrado em {formatDate(user.created_at)}</span>
                                             </div>
                                         )}
@@ -289,7 +291,7 @@ export function ManageUsers() {
                             {/* Patient Specific Info */}
                             {!user.is_superuser && user.consultations_count !== undefined && (
                                 <div className="mb-4">
-                                    <a href="#" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    <a href="#" className="text-[var(--color-primary)] hover:text-[var(--color-primary-light)] text-sm font-medium">
                                         {user.consultations_count} consultas realizadas
                                     </a>
                                 </div>
@@ -300,7 +302,7 @@ export function ManageUsers() {
                                 {!user.is_superuser && (
                                 <button 
                                     onClick={() => handleScheduleAppointment(user)}
-                                    className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                                    className="px-3 py-1.5 bg-[var(--color-primary)] text-white text-xs font-medium rounded hover:bg-[var(--color-primary-light)] transition-colors flex items-center gap-1"
                                 >
                                     <CalendarIcon className="w-3 h-3" />
                                     Agendar
@@ -310,8 +312,8 @@ export function ManageUsers() {
                                     onClick={handleEditUser}
                                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                                         user.is_superuser 
-                                            ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-[rgba(1,141,174,0.18)] text-[var(--color-primary)] hover:bg-[rgba(61,176,197,0.3)]' 
+                                            : 'bg-[var(--color-background)] text-[var(--color-text-secondary)] hover:bg-[rgba(125,212,220,0.25)]'
                                     }`}
                                 >
                                     <Edit className="w-3 h-3" />
@@ -319,7 +321,7 @@ export function ManageUsers() {
                                 </button>
                                 <button 
                                     onClick={() => handleDeleteUser(user.id)}
-                                    className="p-1.5 text-red-600 hover:text-red-800 transition-colors"
+                                    className="p-1.5 text-[var(--color-danger)] hover:text-red-700 transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -327,12 +329,12 @@ export function ManageUsers() {
 
                             {/* Next Consultation (Patients only) */}
                             {user.role === 'patient' && user.next_consultation && (
-                                <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="bg-[var(--color-background)] rounded-lg p-3">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <Clock className="w-4 h-4 text-gray-500" />
-                                        <span className="text-sm font-medium text-gray-900">Próxima Consulta Sugerida</span>
+                                        <Clock className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                                        <span className="text-sm font-medium text-[var(--color-text-primary)]">Próxima Consulta Sugerida</span>
                                     </div>
-                                    <div className="space-y-1 text-sm text-gray-600">
+                                    <div className="space-y-1 text-sm text-[var(--color-text-secondary)]">
                                         <div>Frequência: {getFrequencyLabel(user.frequency)}</div>
                                         {user.last_consultation && (
                                             <div>Última consulta: {user.last_consultation}</div>

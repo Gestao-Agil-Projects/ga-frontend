@@ -18,16 +18,16 @@ export default function TabBar({
     activeTab, 
     setActiveTab,
     className = "relative mb-6",
-    activeTabClassName = "text-gray-800",
-    inactiveTabClassName = "text-gray-500 hover:text-gray-700",
-    indicatorClassName = "bg-white shadow-sm"
+    activeTabClassName = "text-[var(--color-primary)]",
+    inactiveTabClassName = "text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]",
+    indicatorClassName = "bg-[var(--color-surface)] shadow-sm border border-[var(--color-primary-lighter)]"
 }: TabBarProps) {
     const activeIndex = tabs.findIndex(tab => tab.id === activeTab);
     const tabWidth = 100 / tabs.length;
 
     return (
         <div className={className}>
-            <div className="relative flex bg-neutral-17 rounded-full p-1">
+            <div className="relative flex rounded-full p-1 bg-[rgba(125,212,220,0.18)]">
                 <div 
                     className={`absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-in-out z-0 ${indicatorClassName}`}
                     style={{

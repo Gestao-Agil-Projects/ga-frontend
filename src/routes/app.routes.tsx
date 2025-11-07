@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Home } from "../screens/Home";
 import { About } from "../screens/About";
 import { Contact } from "../screens/Contact";
@@ -35,6 +35,7 @@ export function AppRoutes() {
       <Route path="/professionals" element={<Professionals />} />
       <Route path="/user" element={<User />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

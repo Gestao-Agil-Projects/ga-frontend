@@ -4,7 +4,6 @@ import DatePicker from "../Calendar";
 import { ScheduleGrid } from "../ScheduledGrid";
 import { ModalAppointment } from "../Modals/ModalAppointment";
 import { professionalService } from "../../services/Professional/professional.service";
-import { scheduleService } from "../../services/Schedule/schedule.service";
 import { availabilityService } from "../../services/Availability/availability.service";
 import { userService } from "../../services/User/user.service";
 import { userStore } from "../../store/userStore";
@@ -50,12 +49,13 @@ export function AppointmentManagement() {
     try {
       const response = await professionalService.getProfessionals(userAccountData.access_token);
       if (response.status === 200) {
-        // Tratar resposta da API (pode ser array direto ou objeto com results)
+        const responseData: any = response.data;
         let rawData: any[] = [];
-        if (Array.isArray(response.data)) {
-          rawData = response.data;
-        } else if (response.data?.results && Array.isArray(response.data.results)) {
-          rawData = response.data.results;
+
+        if (Array.isArray(responseData)) {
+          rawData = responseData;
+        } else if (responseData?.results && Array.isArray(responseData.results)) {
+          rawData = responseData.results;
         }
         
         // A API pode retornar estrutura aninhada: { professional: {...}, is_blocked: ... }
@@ -86,9 +86,6 @@ export function AppointmentManagement() {
 
     setIsLoadingSchedules(true);
     try {
-      const dateStr = currentDate.toISOString().split('T')[0];
-      const professionalId = selectedProfessional === "all" ? undefined : selectedProfessional;
-      
       // Como não temos GET em /api/admin/schedule/, vamos buscar de outra forma
       // Por enquanto, vamos usar as disponibilidades que já têm os agendamentos
       setSchedules([]);
@@ -105,7 +102,7 @@ export function AppointmentManagement() {
     try {
       const response = await userService.getAllUsers(userAccountData.access_token);
       if (response.status === 200) {
-        setPatients(response.data);
+        setPatients(response.data as any);
       }
     } catch (error: any) {
       console.error("Erro ao carregar pacientes:", error);
@@ -131,9 +128,10 @@ export function AppointmentManagement() {
           );
 
           if (response.status === 200) {
-            const professionalAvailabilities = Array.isArray(response.data) 
-              ? response.data 
-              : (response.data?.results || []);
+            const responseData: any = response.data;
+            const professionalAvailabilities = Array.isArray(responseData) 
+              ? responseData 
+              : (responseData?.results || []);
             
             // Filtrar apenas disponibilidades para a data selecionada
             const dateAvailabilities = professionalAvailabilities.filter((av: any) => {
@@ -220,19 +218,19 @@ export function AppointmentManagement() {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-4 border-b bg-white">
-          <p className="text-gray-600 text-xs mb-4">
+      <div className="bg-[var(--color-surface)] rounded-xl shadow-sm border border-[var(--color-border)]">
+        <div className="p-4 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+          <p className="text-[var(--color-text-secondary)] text-xs mb-4">
             Clique nos horários para agendar ou bloquear.
           </p>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Filter className="w-3 h-3 text-gray-500" />
+              <Filter className="w-3 h-3 text-[var(--color-text-secondary)]" />
               <select
                 value={selectedProfessional}
                 onChange={(e) => setSelectedProfessional(e.target.value)}
-                className="border border-gray-300 rounded-md px-2 py-1 text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-[var(--color-border)] rounded-md px-2 py-1 text-xs bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 disabled={isLoading}
               >
                 <option value="all">Todos os profissionais</option>
@@ -247,21 +245,21 @@ export function AppointmentManagement() {
             <div className="flex items-center gap-2 relative">
               <button 
                 onClick={() => navigateDate('prev')}
-                className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                className="p-1 hover:bg-[var(--color-muted)] rounded-md transition-colors"
               >
                 <ChevronLeft className="w-3 h-3" />
               </button>
               
               <button
                 onClick={() => setShowCalendar(!showCalendar)}
-                className="px-3 py-1 bg-gray-100 rounded-md text-xs font-medium hover:bg-gray-200 min-w-[200px] transition-colors"
+                className="px-3 py-1 bg-[rgba(125,212,220,0.25)] rounded-md text-xs font-medium text-[var(--color-text-primary)] hover:bg-[rgba(61,176,197,0.3)] min-w-[200px] transition-colors"
               >
                 {formatDate(currentDate)}
               </button>
               
               <button 
                 onClick={() => navigateDate('next')}
-                className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                className="p-1 hover:bg-[var(--color-muted)] rounded-md transition-colors"
               >
                 <ChevronRight className="w-3 h-3" />
               </button>
@@ -281,7 +279,7 @@ export function AppointmentManagement() {
 
         <div className="p-4">
           {isLoadingSchedules ? (
-            <div className="text-center py-8 text-gray-600">Carregando agendamentos...</div>
+            <div className="text-center py-8 text-[var(--color-text-secondary)]">Carregando agendamentos...</div>
           ) : (
             <ScheduleGrid 
               professionals={professionals}

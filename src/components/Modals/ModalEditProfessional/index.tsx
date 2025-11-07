@@ -525,26 +525,26 @@ export default function ModalEditProfessional({
             overlayClassName="modal-overlay"
             contentLabel="Modal de Agenda do Profissional"
         >
-            <div className="bg-[#f5f1eb] rounded-lg shadow-xl w-[360px] lg:w-[560px] mx-4 max-h-[90vh] flex flex-col">
-                <div className="flex justify-between items-center px-6 py-4 border-b">
+            <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-xl w-[360px] lg:w-[560px] mx-4 max-h-[90vh] flex flex-col text-[var(--color-text-primary)]">
+                <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--color-border)] bg-[rgba(125,212,220,0.18)]">
                     <div className="flex flex-row items-center gap-2">
-                        <Clock className="w-5 h-5 text-primary" />
-                        <h2 className="text-lg font-semibold text-neutral-18">
+                        <Clock className="w-5 h-5 text-[var(--color-primary)]" />
+                        <h2 className="text-lg font-semibold text-[var(--color-primary)]">
                             Agenda do Profissional
                         </h2>
                     </div>
                     <ButtonClose onClose={handleClose} />
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-6 pb-6">
+                <div className="flex-1 overflow-y-auto px-6 pb-6 bg-[var(--color-surface)]">
                     <div className="flex items-center gap-2 mb-6 mt-4">
-                        <Clock className="w-5 h-5 text-primary" />
-                        <h3 className="text-lg font-semibold text-gray-900">Configurar Horários de Trabalho</h3>
+                        <Clock className="w-5 h-5 text-[var(--color-primary)]" />
+                        <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Configurar Horários de Trabalho</h3>
                     </div>
 
                     {isLoadingSchedule ? (
                         <div className="text-center py-8">
-                            <div className="text-gray-600">Carregando horários...</div>
+                            <div className="text-[var(--color-text-secondary)]">Carregando horários...</div>
                         </div>
                     ) : (
                         <>
@@ -556,8 +556,8 @@ export default function ModalEditProfessional({
                                             key={daySchedule.day}
                                             className={`rounded-xl border transition-colors shadow-sm ${
                                                 isEnabled
-                                                    ? "border-primary/30 bg-primary/5"
-                                                    : "border-gray-200 bg-white"
+                                                    ? "border-[var(--color-primary)] bg-[rgba(125,212,220,0.18)]"
+                                                    : "border-[var(--color-border)] bg-[var(--color-surface)]"
                                             }`}
                                         >
                                             <div className="flex items-center justify-between px-4 py-3">
@@ -566,17 +566,17 @@ export default function ModalEditProfessional({
                                                         type="checkbox"
                                                         checked={isEnabled}
                                                         onChange={() => handleDayToggle(dayIndex)}
-                                                        className="w-4 h-4 text-primary rounded focus:ring-primary"
+                                                        className="w-4 h-4 text-[var(--color-primary)] rounded focus:ring-[var(--color-primary)]"
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDayToggle(dayIndex)}
-                                                        className="text-sm font-medium text-gray-900 hover:text-primary transition-colors"
+                                                        className="text-sm font-medium text-[var(--color-text-primary)] hover:text-[var(--color-primary)] transition-colors"
                                                     >
                                                         {daySchedule.label}
                                                     </button>
                                                 </div>
-                                                <span className="text-xs font-medium text-gray-500">
+                                                <span className="text-xs font-medium text-[var(--color-text-secondary)]">
                                                     {isEnabled
                                                         ? `${daySchedule.timeSlots.length} horário(s)`
                                                         : "Desativado"}
@@ -588,16 +588,16 @@ export default function ModalEditProfessional({
                                                     {daySchedule.timeSlots.map((timeSlot, slotIndex) => (
                                                         <div
                                                             key={slotIndex}
-                                                            className="flex flex-wrap items-center gap-3 rounded-lg border border-blue-100 bg-white px-4 py-3 shadow-sm"
+                                                            className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 shadow-sm"
                                                         >
                                                             <div className="flex items-center gap-2">
-                                                                <label className="text-xs font-medium text-gray-500">
+                                                                <label className="text-xs font-medium text-[var(--color-text-secondary)]">
                                                                     Início
                                                                 </label>
                                                                 <select
                                                                     value={timeSlot.start}
                                                                     onChange={(e) => handleTimeChange(dayIndex, slotIndex, "start", e.target.value)}
-                                                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                                                                    className="px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                                                                 >
                                                                     {TIME_OPTIONS.map((time) => (
                                                                         <option key={time} value={time}>
@@ -606,15 +606,15 @@ export default function ModalEditProfessional({
                                                                     ))}
                                                                 </select>
                                                             </div>
-                                                            <span className="text-gray-400 text-sm">até</span>
+                                                            <span className="text-[var(--color-text-secondary)] text-sm">até</span>
                                                             <div className="flex items-center gap-2">
-                                                                <label className="text-xs font-medium text-gray-500">
+                                                                <label className="text-xs font-medium text-[var(--color-text-secondary)]">
                                                                     Fim
                                                                 </label>
                                                                 <select
                                                                     value={timeSlot.end}
                                                                     onChange={(e) => handleTimeChange(dayIndex, slotIndex, "end", e.target.value)}
-                                                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                                                                    className="px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                                                                 >
                                                                     {TIME_OPTIONS.map((time) => (
                                                                         <option key={time} value={time}>
@@ -623,13 +623,13 @@ export default function ModalEditProfessional({
                                                                     ))}
                                                                 </select>
                                                             </div>
-                                                            <div className="px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium">
+                                                            <div className="px-3 py-2 bg-[rgba(1,141,174,0.15)] text-[var(--color-primary)] rounded-lg text-sm font-medium">
                                                                 {timeSlot.start} - {timeSlot.end}
                                                             </div>
                                                             {daySchedule.timeSlots.length > 1 && (
                                                                 <button
                                                                     onClick={() => handleRemoveTimeSlot(dayIndex, slotIndex)}
-                                                                    className="ml-auto p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                                    className="ml-auto p-2 text-[var(--color-danger)] hover:bg-[var(--color-background)] rounded-lg transition-colors"
                                                                 >
                                                                     <X className="w-4 h-4" />
                                                                 </button>
@@ -638,7 +638,7 @@ export default function ModalEditProfessional({
                                                     ))}
                                                     <button
                                                         onClick={() => handleAddTimeSlot(dayIndex)}
-                                                        className="flex items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-600 hover:border-primary hover:text-primary transition-colors"
+                                                        className="flex items-center gap-2 rounded-lg border border-dashed border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
                                                     >
                                                         <Plus className="w-4 h-4" />
                                                         Adicionar horário
@@ -650,9 +650,9 @@ export default function ModalEditProfessional({
                                 })}
                             </div>
 
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                                <h4 className="font-semibold text-blue-900 mb-2">Dicas</h4>
-                                <ul className="text-sm text-blue-800 space-y-1">
+                            <div className="bg-[rgba(1,141,174,0.12)] border border-[var(--color-border)] rounded-lg p-4 mt-4">
+                                <h4 className="font-semibold text-[var(--color-primary)] mb-2">Dicas</h4>
+                                <ul className="text-sm text-[var(--color-text-secondary)] space-y-1">
                                     <li>• Marque os dias em que o profissional atende</li>
                                     <li>• Configure múltiplos horários por dia (manhã e tarde)</li>
                                     <li>• Use "Adicionar horário" para novos períodos</li>
@@ -661,13 +661,12 @@ export default function ModalEditProfessional({
                             </div>
 
                             <div className="mt-6 flex gap-3 justify-end">
-                            <button
-                            onClick={handleClose}
-
-                            className="w-full mt-6 bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md transition-colors text-sm"
-                            >
-                            <span>Cancelar</span>
-                            </button>
+                                <button
+                                    onClick={handleClose}
+                                    className="w-full mt-6 py-2 px-4 rounded-md transition-colors text-sm border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-text-secondary)] hover:bg-[rgba(125,212,220,0.25)]"
+                                >
+                                    <span>Cancelar</span>
+                                </button>
                                 <ButtonPrimary
                                     onClick={handleSaveSchedule}
                                     disabled={isLoading}

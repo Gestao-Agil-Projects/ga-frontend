@@ -37,7 +37,7 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
         birth_date,
         setBirthDate
     } = createUserStore();
-    const { user, setUser, setUserAccountData } = userStore();
+    const { setUser, setUserAccountData } = userStore();
     const { showToast } = useToast();
     const [emailLogin, setEmailLogin] = useState("");
     const [passwordLogin, setPasswordLogin] = useState("");
@@ -195,34 +195,29 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
         
         setIsLoading(true);
         try {
-            const userData = {
+            const registerPayload = {
                 email: email.trim(),
                 password: password.trim(),
                 full_name: full_name.trim(),
                 cpf: cleanCPF(cpf),
                 phone: cleanPhone(phone),
                 birth_date: birth_date || "1990-01-01",
-                frequency: "as_needed",
-                role: "patient",
-                is_active: true,
-                is_superuser: false,
-                is_verified: false
+                frequency: "as_needed"
             };
 
-            console.log("📤 Dados sendo enviados:", userData);
+            console.log("📤 Dados sendo enviados para /api/auth/register:", registerPayload);
 
-            const response = await userService.createPatient(userData, "");
+            const response = await userService.registerUser(registerPayload);
 
-            if (response && response.status === 201) {
-                const userData = {
+            if (response && (response.status === 201 || response.status === 200)) {
+                const registeredUser = {
                     ...response.data,
                     is_active: true,
                     is_superuser: false,
                     is_verified: false
                 };
-                setUser(userData);
-                console.log("user", user);
-                console.log("✅ Usuário criado:", response.data);
+                setUser(registeredUser);
+                console.log("✅ Usuário registrado:", response.data);
 
                 try {
                     const loginData = {
@@ -234,7 +229,7 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                         client_secret: "string"
                     };
 
-                    console.log("🔐 Dados de login:", loginData);
+                console.log("🔐 Dados de login:", loginData);
 
                     const loginResponse = await userService.postLogin(loginData);
                     
@@ -248,6 +243,7 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
                         );
                     }
                 } catch (loginError: any) {
+                    console.error("Erro ao realizar login automático após registro:", loginError);
                     showToast(
                         "Sucesso!",
                         "Conta criada com sucesso! Faça login para continuar.",
@@ -260,14 +256,16 @@ export default function ModalLogin({ isOpen, onClose }: ModalLoginProps) {
             }
 
         } catch (error: any) {
+            console.error("Erro ao registrar usuário:", error);
+            const errorMessage =
+                error.response?.data?.detail ||
+                error.message ||
+                "Erro ao criar conta. Tente novamente.";
             showToast(
                 "Erro!",
-                error.message || "Erro ao criar conta. Tente novamente.",
+                errorMessage,
                 "error"
             );
-            onClose();
-            clearForm();
-
         } finally {
             setIsLoading(false);
         }

@@ -516,33 +516,33 @@ useEffect(() => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)]">
       <Header />
       <main className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div>
-                <h1 className="text-3xl font-bold text-blue-600 mb-1">
+                <h1 className="text-3xl font-bold text-[var(--color-primary)] mb-1">
                   Minha Área
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-[var(--color-text-secondary)]">
                   Gerencie suas consultas e mantenha seus dados atualizados
                 </p>
               </div>
             </div>
             <div className="text-right">
               <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-blue-600">
+                <div className="w-10 h-10 bg-[rgba(1,141,174,0.18)] rounded-full flex items-center justify-center">
+                  <span className="text-sm font-bold text-[var(--color-primary)]">
                     {getInitials(user?.full_name)}
                   </span>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-semibold text-[var(--color-text-primary)]">
                     {user?.full_name || "João Silva"}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-[var(--color-text-secondary)]">
                     {user?.email || "joao@email.com"}
                   </p>
                 </div>
@@ -556,29 +556,29 @@ useEffect(() => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-2">
-                <Calendar className="w-5 h-5 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">
+                <Calendar className="w-5 h-5 text-[var(--color-primary)]" />
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
                   Próximas Consultas
                 </h2>
                 </div>
                 <button
                   onClick={() => setIsScheduleModalOpen(true)}
                   disabled={!userAccountData?.access_token}
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-light)] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Agendar Consulta
                 </button>
               </div>
-              <p className="text-gray-600 mb-6">
+              <p className="text-[var(--color-text-secondary)] mb-6">
                 Suas consultas agendadas nos próximos dias
               </p>
 
               <div className="space-y-4">
                 {isLoadingConsultations ? (
-                  <div className="border rounded-lg p-4 bg-gray-50 text-gray-500 text-sm">
+                  <div className="border border-[var(--color-border)] rounded-lg p-4 bg-[var(--color-background)] text-[var(--color-text-secondary)] text-sm">
                     Carregando consultas...
                   </div>
                 ) : upcomingSchedulesDisplayed.length > 0 ? (
@@ -591,14 +591,14 @@ useEffect(() => {
                       "";
                     const statusConfig = getStatusConfig(schedule.status);
                     return (
-                      <div key={schedule.id} className="border rounded-lg p-4">
+                      <div key={schedule.id} className="border border-[var(--color-border)] rounded-xl p-4 bg-white">
                   <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                      <UserIcon className="w-6 h-6 text-gray-600" />
+                    <div className="w-12 h-12 bg-[var(--color-background)] rounded-full flex items-center justify-center">
+                      <UserIcon className="w-6 h-6 text-[var(--color-text-secondary)]" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-gray-900">
+                              <h3 className="font-semibold text-[var(--color-text-primary)]">
                                 {professional?.full_name || "Profissional"}
                               </h3>
                               <span
@@ -608,9 +608,9 @@ useEffect(() => {
                         </span>
                       </div>
                             {speciality && (
-                              <p className="text-sm text-gray-600">{speciality}</p>
+                              <p className="text-sm text-[var(--color-text-secondary)]">{speciality}</p>
                             )}
-                      <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                      <div className="flex items-center space-x-4 mt-2 text-sm text-[var(--color-text-secondary)]">
                               <span>{formatScheduleDate(schedule.start_time)}</span>
                               <span className="flex items-center space-x-1">
 
@@ -626,7 +626,7 @@ useEffect(() => {
                     );
                   })
                 ) : (
-                  <div className="border rounded-lg p-4 bg-gray-50 text-gray-500 text-sm">
+                  <div className="border border-[var(--color-border)] rounded-lg p-4 bg-[var(--color-background)] text-[var(--color-text-secondary)] text-sm">
                     Você ainda não possui consultas agendadas.
                   </div>
                 )}
@@ -636,53 +636,53 @@ useEffect(() => {
 
           <div className="lg:col-span-1 space-y-6">
             {/* Card Dados Pessoais */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
-                  <UserIcon className="w-5 h-5 text-gray-700" strokeWidth={1.5} />
-                  <h2 className="text-lg font-bold text-gray-900">
+                  <UserIcon className="w-5 h-5 text-[var(--color-primary)]" strokeWidth={1.5} />
+                  <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
                     Dados Pessoais
                   </h2>
                 </div>
                 {!isEditingPersonal ? (
                   <button 
-                    className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    className="p-2 bg-[var(--color-background)] hover:bg-[rgba(125,212,220,0.25)] rounded-lg transition-colors"
                     onClick={handleStartEditPersonal}
                   >
-                    <Edit className="w-4 h-4 text-gray-600" strokeWidth={1.5} />
+                    <Edit className="w-4 h-4 text-[var(--color-text-secondary)]" strokeWidth={1.5} />
                   </button>
                 ) : (
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={handleSavePersonal}
                       disabled={isSavingPersonal}
-                      className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-light)] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="w-4 h-4" strokeWidth={1.5} />
                     </button>
                     <button
                       onClick={handleCancelPersonal}
                       disabled={isSavingPersonal}
-                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 bg-[var(--color-background)] hover:bg-[rgba(125,212,220,0.25)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <X className="w-4 h-4 text-gray-600" strokeWidth={1.5} />
+                      <X className="w-4 h-4 text-[var(--color-text-secondary)]" strokeWidth={1.5} />
                 </button>
                   </div>
                 )}
               </div>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm text-[var(--color-text-secondary)] mb-6">
                 Mantenha suas informações atualizadas
               </p>
 
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <p className="text-gray-500">Carregando...</p>
+                  <p className="text-[var(--color-text-secondary)]">Carregando...</p>
                 </div>
               ) : (
                 <>
                   <div className="flex flex-col items-center mb-6">
-                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-2xl font-bold text-blue-600">
+                    <div className="w-20 h-20 bg-[rgba(1,141,174,0.18)] rounded-full flex items-center justify-center">
+                      <span className="text-2xl font-bold text-[var(--color-primary)]">
                         {getInitials(user?.full_name)}
                       </span>
                     </div>
@@ -692,8 +692,8 @@ useEffect(() => {
                     {!isEditingPersonal ? (
                       <>
                   <div>
-                          <p className="text-sm font-semibold text-gray-700 mb-1">Nome Completo</p>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-semibold text-[var(--color-text-secondary)] mb-1">Nome Completo</p>
+                          <p className="text-sm font-medium text-[var(--color-text-primary)]">
                             {user?.full_name || "João Silva"}
                     </p>
                   </div>

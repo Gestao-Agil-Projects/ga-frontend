@@ -87,38 +87,31 @@ export function ModalCreateUser({ isOpen, onClose, userType }: ModalCreateUserPr
                 return dateStr;
             };
 
-            const userData = {
+            const commonData = {
                 full_name: fullName.trim(),
                 email: email.trim(),
                 phone: cleanPhone(phone),
                 cpf: cleanCPF(cpf),
                 birth_date: formatDateForAPI(birthDate.trim()),
                 bio: bio.trim(),
-                ...(selectedUserType === 'patient' && { frequency })
             };
 
-            console.log('Dados sendo enviados:', userData);
+            console.log('Dados sendo enviados:', commonData);
 
-            // Sempre criar como paciente primeiro
-            const response = await userService.createPatient(userData, userAccountData.access_token);
+            let response;
+            if (selectedUserType === 'admin') {
+                response = await userService.createAdmin(commonData, userAccountData.access_token);
+            } else {
+                response = await userService.createPatient(
+                    {
+                        ...commonData,
+                        frequency
+                    },
+                    userAccountData.access_token
+                );
+            }
 
             if (response.status === 201 || response.status === 200) {
-                // Se for admin, fazer PATCH para definir is_superuser = true
-                if (selectedUserType === 'admin') {
-                    try {
-                        console.log('Atualizando usuário para admin:', response.data.id);
-                        await userService.updateUserToAdmin(response.data.id, userAccountData.access_token);
-                        console.log('Usuário atualizado para admin com sucesso');
-                    } catch (adminError) {
-                        console.error('Erro ao atualizar para admin:', adminError);
-                        showToast(
-                            "Aviso!",
-                            "Usuário criado, mas erro ao definir como administrador. Você pode editar manualmente.",
-                            "warning"
-                        );
-                    }
-                }
-                
                 addUser(response.data);
                 showToast(
                     "Sucesso!",
