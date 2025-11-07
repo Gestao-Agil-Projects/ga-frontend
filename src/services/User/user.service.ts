@@ -120,7 +120,7 @@ export const userService = {
         }
     },
 
-    async createPatient(patientData: CreatePatientData, token: string): Promise<{ status: number; data: UserData }> {
+    async createPatientByAdmin(patientData: CreatePatientData, token: string): Promise<{ status: number; data: UserData }> {
         try {
             const userData = {
                 ...patientData,

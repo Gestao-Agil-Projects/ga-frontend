@@ -6,25 +6,6 @@ import MobileMenu from "../Mobile/Menu";
 import { userStore } from "../../store/userStore";
 import logo from '../../assets/logo.png'
 
-const navigationLinks = [
-  {
-    to: "/",
-    label: "Início"
-  },
-  {
-    to: "/professionals",
-    label: "Profissionais"
-  },
-  {
-    to: "/about", 
-    label: "Sobre"
-  },
-  {
-    to: "/contact",
-    label: "Contato"
-  }
-];
-
 export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -86,18 +67,6 @@ export function Header() {
                 <img src={logo} alt="Logo" className="w-[110px] h-[49px]" />
               </Link>
             </div>
-            
-            <nav className="hidden md:flex items-center space-x-8">
-              {navigationLinks.map((link) => (
-                <Link 
-                  key={link.to}
-                  to={link.to} 
-                  className={linkClasses(link.to)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
 
             <div className="hidden lg:flex space-x-4 items-center">
               {isLoggedIn ? (

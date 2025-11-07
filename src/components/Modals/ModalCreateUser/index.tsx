@@ -102,7 +102,7 @@ export function ModalCreateUser({ isOpen, onClose, userType }: ModalCreateUserPr
             if (selectedUserType === 'admin') {
                 response = await userService.createAdmin(commonData, userAccountData.access_token);
             } else {
-                response = await userService.createPatient(
+                response = await userService.createPatientByAdmin(
                     {
                         ...commonData,
                         frequency

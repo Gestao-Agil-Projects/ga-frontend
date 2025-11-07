@@ -154,6 +154,7 @@ useEffect(() => {
 
     setIsLoadingProfessionals(true);
     try {
+      console.log("AQUII")
       const response = await professionalService.getPatientProfessionals(userAccountData.access_token);
       if (response.status === 200) {
         const rawData = Array.isArray(response.data)

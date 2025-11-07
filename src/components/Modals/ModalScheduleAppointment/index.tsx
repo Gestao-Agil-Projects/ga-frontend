@@ -91,7 +91,7 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
 
         setIsLoadingProfessionals(true);
         try {
-            const response = await professionalService.getProfessionals(userAccountData.access_token);
+            const response = await professionalService.getPatientProfessionals(userAccountData.access_token);
             if (response.status === 200) {
                 // Tratar resposta da API (pode ser array direto ou objeto com results)
                 let rawData: any[] = [];
@@ -136,7 +136,7 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
         setIsLoadingSlots(true);
         try {
             // 1. Buscar disponibilidades do psicólogo (por dia da semana)
-            const availabilityResponse = await availabilityService.getAvailabilitiesByProfessional(
+            const availabilityResponse = await availabilityService.getPatientAvailabilitiesByProfessional(
                 selectedProfessional,
                 userAccountData.access_token
             );
@@ -264,12 +264,8 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
             // Usar o datetime do slot (já está configurado corretamente)
             const appointmentDate = new Date(slot.start_time);
 
-            const response = await scheduleService.postCreateAdminSchedule(
+            const response = await scheduleService.postCreateSchedule(
                 {
-                    patient_id: patient.id,
-                    professional_id: selectedProfessional,
-                    specialty_id: specialtyId,
-                    date: appointmentDate.toISOString(),
                     availability_id: slot.availability_id,
                     email: patient.email
                 },
