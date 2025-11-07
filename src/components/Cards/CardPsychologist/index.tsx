@@ -1,10 +1,17 @@
-import { Edit, Lock, Unlock, Trash2 } from "lucide-react";
-import { type Professional } from "../../../data/professionals";
+import { Clock, Lock, Unlock, Trash2 } from "lucide-react";
+
+interface Professional {
+    id: string;
+    name: string;
+    color: string;
+    bio: string;
+}
 
 interface CardPsychologistsProps {
     professional: Professional;
     appointmentsToday: number;
     specialty: string;
+    bio?: string;
     isBlocked: boolean;
     onEdit: (id: string) => void;
     onToggleBlock: (id: string) => void;
@@ -14,7 +21,8 @@ interface CardPsychologistsProps {
 export function CardPsychologist({ 
     professional, 
     appointmentsToday, 
-    specialty, 
+    specialty,
+    bio,
     isBlocked,
     onEdit,
     onToggleBlock,
@@ -33,6 +41,9 @@ export function CardPsychologist({
                         )}
                     </div>
                     <p className="text-sm text-gray-600 mb-1">{specialty}</p>
+                    {bio && (
+                        <p className="text-xs text-gray-500 mb-1 line-clamp-2">{bio}</p>
+                    )}
                     <p className="text-xs text-gray-500">{appointmentsToday} consultas hoje</p>
                 </div>
             </div>
@@ -42,8 +53,8 @@ export function CardPsychologist({
                     onClick={() => onEdit(professional.id)}
                     className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200 hover:bg-gray-200 rounded-md transition-colors flex items-center gap-1"
                 >
-                    <Edit className="w-3 h-3" />
-                    Editar
+                    <Clock className="w-3 h-3" />
+                    Agenda
                 </button>
                 
                 <button

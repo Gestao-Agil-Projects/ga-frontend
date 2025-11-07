@@ -1,8 +1,12 @@
-import { X } from "lucide-react";
 import Modal from "react-modal";
-import { professionals } from "../../../data/professionals";
 import { type Appointment } from "../../../data/appointments";
 import ButtonClose from "../../Buttons/ButtonClose";
+
+const professionals = [
+    { id: "1", name: "DRA. ANA SILVA", color: "bg-blue-500" },
+    { id: "2", name: "DR. CARLOS MENDES", color: "bg-gray-500" },
+    { id: "3", name: "DRA. MARIANA COSTA", color: "bg-green-500" }
+];
 
 interface ModalAppointmentProps {
     isOpen: boolean;
@@ -25,7 +29,7 @@ export function ModalAppointment({
             overlayClassName="fixed inset-0 bg-black bg-opacity-50"
         >
             {selectedAppointment && (
-                <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+                <div className="bg-[#f5f1eb] rounded-lg shadow-xl w-full max-w-md mx-4">
                     <div className="flex justify-between items-center p-4 border-b">
                         <h2 className="text-base font-semibold">Detalhes do Agendamento</h2>
                         <ButtonClose onClose={onClose} />
