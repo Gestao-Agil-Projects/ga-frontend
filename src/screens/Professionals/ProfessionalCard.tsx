@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Professional } from './mockProfessionals';
 import { Calendar } from 'lucide-react';
-import ModalAppointment from '../../components/Modals/ModalAppointment';
+import { ModalScheduleAppointment } from '../../components/Modals/ModalScheduleAppointment';
 import ModalLogin from '../../components/Modals/ModalLogin';
 import { userStore } from '../../store/userStore';
 
@@ -79,11 +79,10 @@ export default function ProfessionalCard({ professional }: { professional: Profe
       />
 
       {/* Modal de Agendamento (quando usuário autenticado) */}
-      <ModalAppointment
+      <ModalScheduleAppointment
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        professionalName={professional.name}
-        specialty={professional.specialties[0]}
+        patient={null}
       />
     </article>
   );
