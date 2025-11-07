@@ -4,6 +4,39 @@ import type { TProfessionalData } from "../../store/types/TProfessionalData";
 import type { IScheduleData } from "../../services/Schedule/types";
 import type { UserData } from "../../services/User/user.service";
 
+const hasTimezoneInfo = (dateString: string): boolean => {
+  if (!dateString) return false;
+  return /([zZ]|[+-]\d{2}:?\d{2})$/.test(dateString);
+};
+
+const getTimePartsFromISO = (dateString: string): { hours: number; minutes: number } => {
+  if (!dateString) {
+    return { hours: 0, minutes: 0 };
+  }
+
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return { hours: 0, minutes: 0 };
+  }
+
+  const useUTC = hasTimezoneInfo(dateString);
+
+  return {
+    hours: useUTC ? date.getUTCHours() : date.getHours(),
+    minutes: useUTC ? date.getUTCMinutes() : date.getMinutes(),
+  };
+};
+
+const getMinutesFromISO = (dateString: string): number => {
+  const { hours, minutes } = getTimePartsFromISO(dateString);
+  return hours * 60 + minutes;
+};
+
+const timeStringToMinutes = (time: string): number => {
+  const [hour, minute] = time.split(":").map(Number);
+  return hour * 60 + (minute || 0);
+};
+
 interface ScheduleGridProps {
   professionals: TProfessionalData[];
   schedules: IScheduleData[];
@@ -31,104 +64,64 @@ export function ScheduleGrid({
   };
   // Verificar se um slot está dentro de uma disponibilidade
   const getAvailabilityForSlot = (professionalId: string, time: string) => {
-    const timeParts = time.split(":");
-    const timeHour = parseInt(timeParts[0]);
-    const timeMinute = parseInt(timeParts[1]);
-    const timeMinutes = timeHour * 60 + timeMinute;
+    const timeMinutes = timeStringToMinutes(time);
 
     return availabilities.find((av: any) => {
       if (av.professional_id !== professionalId) return false;
-      if (!av.start_time || !av.start_time.includes("T")) return false;
+      if (!av.start_time) return false;
 
-      const avStart = new Date(av.start_time);
-      const avEnd = new Date(av.end_time);
-      const avStartMinutes = avStart.getUTCHours() * 60 + avStart.getUTCMinutes();
-      const avEndMinutes = avEnd.getUTCHours() * 60 + avEnd.getUTCMinutes();
+      const avStartMinutes = getMinutesFromISO(av.start_time);
+      const avEndMinutes = getMinutesFromISO(av.end_time);
 
-      // Verificar se o horário está dentro do intervalo (incluindo início e fim)
-      // Se um agendamento é de 10:00 até 11:00, deve ocupar os slots 10:00 e 11:00
-      // Então incluímos o slot final também (<= ao invés de <)
       return timeMinutes >= avStartMinutes && timeMinutes <= avEndMinutes;
     });
   };
 
   // Verificar se um slot tem um agendamento
   const getAppointmentForSlot = (professionalId: string, time: string) => {
-    // Buscar todas as disponibilidades agendadas deste profissional
+    const timeMinutes = timeStringToMinutes(time);
+
     const scheduledAvailabilities = availabilities.filter((av: any) => {
       if (av.professional_id !== professionalId) return false;
-      if (!av.start_time || !av.start_time.includes("T")) return false;
-      // Verificar se está agendada
+      if (!av.start_time) return false;
       if (!av.patient_id && av.status !== "taken") return false;
-      
-      // Verificar se o horário está dentro do intervalo do agendamento
-      const timeParts = time.split(":");
-      const timeHour = parseInt(timeParts[0]);
-      const timeMinute = parseInt(timeParts[1]);
-      const timeMinutes = timeHour * 60 + timeMinute;
-      
-      const avStart = new Date(av.start_time);
-      const avEnd = new Date(av.end_time);
-      const avStartMinutes = avStart.getUTCHours() * 60 + avStart.getUTCMinutes();
-      const avEndMinutes = avEnd.getUTCHours() * 60 + avEnd.getUTCMinutes();
-      
-      // O horário está dentro do intervalo (incluindo início e fim)
-      // Se um agendamento é de 10:00 até 11:00, deve ocupar os slots 10:00 e 11:00
+
+      const avStartMinutes = getMinutesFromISO(av.start_time);
+      const avEndMinutes = getMinutesFromISO(av.end_time);
+
       return timeMinutes >= avStartMinutes && timeMinutes <= avEndMinutes;
     });
 
     if (scheduledAvailabilities.length === 0) return null;
 
-    // Pegar a primeira disponibilidade agendada (deve haver apenas uma)
     const availability = scheduledAvailabilities[0];
-    
-    // Calcular duração real do agendamento
-    const avStart = new Date(availability.start_time);
-    const avEnd = new Date(availability.end_time);
-    const avStartHour = avStart.getUTCHours();
-    const avStartMin = avStart.getUTCMinutes();
-    const avEndHour = avEnd.getUTCHours();
-    const avEndMin = avEnd.getUTCMinutes();
-    const avStartMinutes = avStartHour * 60 + avStartMin;
-    const avEndMinutes = avEndHour * 60 + avEndMin;
+    const avStartMinutes = getMinutesFromISO(availability.start_time);
+    const avEndMinutes = getMinutesFromISO(availability.end_time);
     const durationMinutes = avEndMinutes - avStartMinutes;
 
-    // Verificar se este é o primeiro slot do agendamento
-    const timeParts = time.split(":");
-    const timeHour = parseInt(timeParts[0]);
-    const timeMinute = parseInt(timeParts[1]);
-    const timeMinutes = timeHour * 60 + timeMinute;
     const isFirstSlot = timeMinutes === avStartMinutes;
 
-    // Calcular quantos slots de 1 hora são necessários
-    // Exemplo: 10:00 até 11:00 = deve ocupar 2 slots (10:00 e 11:00)
-    // Para isso, precisamos contar quantos slots estão dentro do intervalo
     let slotCount = 0;
     for (let i = 0; i < timeSlots.length; i++) {
-      const slotTime = timeSlots[i];
-      const slotParts = slotTime.split(":");
-      const slotHour = parseInt(slotParts[0]);
-      const slotMinute = parseInt(slotParts[1]);
-      const slotMinutes = slotHour * 60 + slotMinute;
-      
-      // Um agendamento de 10:00 até 11:00 deve ocupar os slots 10:00 e 11:00
-      // Então verificamos se o slot está dentro do intervalo (incluindo início e fim)
+      const slotMinutes = timeStringToMinutes(timeSlots[i]);
       if (slotMinutes >= avStartMinutes && slotMinutes <= avEndMinutes) {
         slotCount++;
       }
     }
 
-    return isFirstSlot ? {
-      id: availability.id,
-      professionalId: availability.professional_id,
-      patientName: getPatientName(availability.patient_id),
-      time: time,
-      duration: durationMinutes, // Duração real em minutos
-      slotCount: slotCount, // Número de slots necessários
-      status: "confirmed" as const,
-      date: availability.start_time,
-      availability_id: availability.id
-    } : null;
+    return isFirstSlot
+      ? {
+          id: availability.id,
+          professionalId: availability.professional_id,
+          patientName: getPatientName(availability.patient_id),
+          time: time,
+          duration: durationMinutes,
+          slotCount: slotCount,
+          status: "confirmed" as const,
+          date: availability.start_time,
+          availability_id: availability.id,
+        }
+      : null;
   };
 
   const getSlotSpan = (duration: number) => {
@@ -145,40 +138,28 @@ export function ScheduleGrid({
       const prevTime = timeSlots[i];
       const prevAppointment = getAppointmentForSlot(professionalId, prevTime);
       const prevAvailability = getAvailabilityForSlot(professionalId, prevTime);
-      
-      // Verificar se já foi renderizado por um agendamento
+
       if (prevAppointment) {
-        // Usar slotCount diretamente se disponível, senão calcular pela duração
         const span = (prevAppointment as any).slotCount || getSlotSpan(prevAppointment.duration);
         if (i + span > timeIndex) {
           return false;
         }
       }
-      
-      // Verificar se já foi renderizado por uma disponibilidade (disponível ou agendada)
+
       if (prevAvailability) {
-        const avStart = new Date(prevAvailability.start_time);
-        const avEnd = new Date(prevAvailability.end_time);
-        const avStartMinutes = avStart.getUTCHours() * 60 + avStart.getUTCMinutes();
-        const avEndMinutes = avEnd.getUTCHours() * 60 + avEnd.getUTCMinutes();
-        
-        // Contar quantos slots estão dentro do intervalo
+        const avStartMinutes = getMinutesFromISO(prevAvailability.start_time);
+        const avEndMinutes = getMinutesFromISO(prevAvailability.end_time);
+
         let slotCount = 0;
         for (let j = 0; j < timeSlots.length; j++) {
-          const slotTime = timeSlots[j];
-          const slotParts = slotTime.split(":");
-          const slotHour = parseInt(slotParts[0]);
-          const slotMinute = parseInt(slotParts[1]);
-          const slotMinutes = slotHour * 60 + slotMinute;
-          
-          // Incluir o slot final também (<= ao invés de <)
+          const slotMinutes = timeStringToMinutes(timeSlots[j]);
           if (slotMinutes >= avStartMinutes && slotMinutes <= avEndMinutes) {
             slotCount++;
           }
         }
-        
+
         const span = Math.max(1, slotCount);
-        
+
         if (i + span > timeIndex) {
           return false;
         }
@@ -188,28 +169,18 @@ export function ScheduleGrid({
   };
   
   const getAvailabilitySpan = (availability: any) => {
-    const avStart = new Date(availability.start_time);
-    const avEnd = new Date(availability.end_time);
-    const avStartMinutes = avStart.getUTCHours() * 60 + avStart.getUTCMinutes();
-    const avEndMinutes = avEnd.getUTCHours() * 60 + avEnd.getUTCMinutes();
-    
-    // Contar quantos slots de 1 hora estão dentro do intervalo
+    const avStartMinutes = getMinutesFromISO(availability.start_time);
+    const avEndMinutes = getMinutesFromISO(availability.end_time);
+
     let slotCount = 0;
     for (let i = 0; i < timeSlots.length; i++) {
-      const slotTime = timeSlots[i];
-      const slotParts = slotTime.split(":");
-      const slotHour = parseInt(slotParts[0]);
-      const slotMinute = parseInt(slotParts[1]);
-      const slotMinutes = slotHour * 60 + slotMinute;
-      
-      // Se o slot está dentro do intervalo (incluindo início e fim)
-      // Exemplo: 10:00 até 11:00 deve contar os slots 10:00 e 11:00
+      const slotMinutes = timeStringToMinutes(timeSlots[i]);
       if (slotMinutes >= avStartMinutes && slotMinutes <= avEndMinutes) {
         slotCount++;
       }
     }
-    
-    return Math.max(1, slotCount); // Garantir pelo menos 1 slot
+
+    return Math.max(1, slotCount);
   };
 
   const filteredProfessionals = selectedProfessional === "all" 
@@ -281,22 +252,13 @@ export function ScheduleGrid({
                 
                 // Se tem disponibilidade mas não está agendada, mostrar como disponível
                 if (availability && !availability.patient_id && availability.status !== "taken") {
-                  // Verificar se este é o primeiro slot da disponibilidade
-                  const avStart = new Date(availability.start_time);
-                  const avStartHour = avStart.getUTCHours();
-                  const avStartMin = avStart.getUTCMinutes();
-                  const avStartMinutes = avStartHour * 60 + avStartMin;
-                  
-                  const timeParts = time.split(":");
-                  const timeHour = parseInt(timeParts[0]);
-                  const timeMin = parseInt(timeParts[1]);
-                  const timeMinutes = timeHour * 60 + timeMin;
-                  
-                  // Se não é o primeiro slot, não renderizar (já foi renderizado com colSpan)
+                  const avStartMinutes = getMinutesFromISO(availability.start_time);
+                  const timeMinutes = timeStringToMinutes(time);
+
                   if (timeMinutes !== avStartMinutes) {
                     return null;
                   }
-                  
+
                   const span = getAvailabilitySpan(availability);
                   return (
                     <td 

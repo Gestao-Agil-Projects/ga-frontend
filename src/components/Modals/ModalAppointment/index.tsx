@@ -29,7 +29,7 @@ export function ModalAppointment({
             overlayClassName="fixed inset-0 bg-black bg-opacity-50"
         >
             {selectedAppointment && (
-                <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+                <div className="bg-[#f5f1eb] rounded-lg shadow-xl w-full max-w-md mx-4">
                     <div className="flex justify-between items-center p-4 border-b">
                         <h2 className="text-base font-semibold">Detalhes do Agendamento</h2>
                         <ButtonClose onClose={onClose} />

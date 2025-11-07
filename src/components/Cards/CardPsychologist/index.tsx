@@ -1,4 +1,4 @@
-import { Edit, Lock, Unlock, Trash2 } from "lucide-react";
+import { Clock, Lock, Unlock, Trash2 } from "lucide-react";
 
 interface Professional {
     id: string;
@@ -53,8 +53,8 @@ export function CardPsychologist({
                     onClick={() => onEdit(professional.id)}
                     className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200 hover:bg-gray-200 rounded-md transition-colors flex items-center gap-1"
                 >
-                    <Edit className="w-3 h-3" />
-                    Editar
+                    <Clock className="w-3 h-3" />
+                    Agenda
                 </button>
                 
                 <button

@@ -16,6 +16,18 @@ export const professionalService = {
         }
     },
 
+    async getPatientProfessionals(token: string, limit: number = 50, offset: number = 0): Promise<{ status: number; data: any }> {
+        try {
+            const response = await apiProfessional(token).get(`/api/professionals/?limit=${limit}&offset=${offset}`);
+            return {
+                status: response.status,
+                data: response.data,
+            };
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
     async postCreateProfessional(
         professionalData: TCreateProfessionalData,
         token: string

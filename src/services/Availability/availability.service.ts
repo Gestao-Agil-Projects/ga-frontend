@@ -33,6 +33,25 @@ export const availabilityService = {
         }
     },
 
+    async getPatientAvailabilitiesByProfessional(
+        professionalId: string,
+        token: string,
+        limit: number = 50,
+        offset: number = 0
+    ) {
+        try {
+            const response = await apiProfessional(token).get(
+                `/api/availability/?professional_id=${professionalId}&limit=${limit}&offset=${offset}`
+            );
+            return {
+                status: response.status,
+                data: response.data,
+            };
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
     async putUpdateAvailability(id: string, data: IUpdateAvailabilityProps, token: string) {
         try {
             const response = await apiProfessional(token).put(`/api/admin/availability/${id}`, data);

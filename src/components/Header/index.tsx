@@ -105,8 +105,7 @@ export function Header() {
                   <div className="flex items-center space-x-2">
                     <User className="w-5 h-5 text-BLUE" />
                     <button 
-                      onClick={handleUserButtonClick}
-                      className="text-black hover:text-BLUE font-medium"
+                      className="text-black font-medium"
                     >
                       {user?.full_name || userAccountData?.email || 'João Silva'}
                     </button>

@@ -1,10 +1,10 @@
 import { apiProfessional } from "../../config/api";
-import type { ICreateScheduleProps, ICreateAdminScheduleProps } from "./types";
+import type { ICreateScheduleProps, ICreateAdminScheduleProps, IPatientSchedule } from "./types";
 
 export const scheduleService = {
     async postCreateSchedule(data: ICreateScheduleProps, token: string) {
         try {
-            const response = await apiProfessional(token).post("/schedule/", data);
+            const response = await apiProfessional(token).post("/api/schedule/", data);
             return {
                 status: response.status,
                 data: response.data,
@@ -47,6 +47,18 @@ export const scheduleService = {
             const response = await apiProfessional(token).get(
                 `/api/admin/availability/?professional_id=${professionalId}&date=${date}`
             );
+            return {
+                status: response.status,
+                data: response.data,
+            };
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
+    async getPatientSchedules(token: string, limit: number = 50, offset: number = 0): Promise<{ status: number; data: IPatientSchedule[] | any }> {
+        try {
+            const response = await apiProfessional(token).get(`/api/schedule/?limit=${limit}&offset=${offset}`);
             return {
                 status: response.status,
                 data: response.data,

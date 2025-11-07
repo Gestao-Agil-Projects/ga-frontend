@@ -1,6 +1,6 @@
 export interface ICreateScheduleProps {
     availability_id: string;
-    email: string;
+    email?: string;
 }
 
 export interface ICreateAdminScheduleProps {
@@ -31,5 +31,15 @@ export interface IAvailabilitySlot {
     professional_id: string;
     weekday?: string;
     is_active: boolean;
+}
+
+export interface IPatientSchedule {
+    id: string;
+    status: "scheduled" | "taken" | "completed" | "cancelled";
+    start_time: string;
+    end_time: string;
+    professional_id: string;
+    patient_id: string;
+    specialty_id?: string | null;
 }
 

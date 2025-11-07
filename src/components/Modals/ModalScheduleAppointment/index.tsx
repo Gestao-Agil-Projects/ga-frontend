@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Modal from "react-modal";
-import { Calendar, Clock, User, ChevronDown } from "lucide-react";
+import { Calendar, Clock, User } from "lucide-react";
 import ButtonClose from "../../Buttons/ButtonClose";
 import ButtonPrimary from "../../Buttons/ButtonPrimary";
-import DatePicker from "../../Calendar";
+import Input from "../../Inputs/Input";
 import { professionalService } from "../../../services/Professional/professional.service";
 import { availabilityService } from "../../../services/Availability/availability.service";
 import { scheduleService } from "../../../services/Schedule/schedule.service";
@@ -15,10 +15,13 @@ import { formatSpecialities } from "../../../utils/specialityFormatter";
 
 Modal.setAppElement("#root");
 
+type ModalScheduleMode = "admin" | "patient";
+
 interface ModalScheduleAppointmentProps {
     isOpen: boolean;
     onClose: () => void;
     patient: UserData | null;
+    mode?: ModalScheduleMode;
 }
 
 interface AvailableSlot {
@@ -30,22 +33,52 @@ interface AvailableSlot {
     status: string;
 }
 
-export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalScheduleAppointmentProps) {
+const hasTimezoneInfo = (dateString: string): boolean => {
+    if (!dateString) return false;
+    return /([zZ]|[+-]\d{2}:?\d{2})$/.test(dateString);
+};
+
+const getTimePartsFromISO = (dateString: string): { hours: number; minutes: number } => {
+    if (!dateString) {
+        return { hours: 0, minutes: 0 };
+    }
+
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+        return { hours: 0, minutes: 0 };
+    }
+
+    const useUTC = hasTimezoneInfo(dateString);
+
+    return {
+        hours: useUTC ? date.getUTCHours() : date.getHours(),
+        minutes: useUTC ? date.getUTCMinutes() : date.getMinutes()
+    };
+};
+
+const formatTimeLabel = (dateString: string): string => {
+    const { hours, minutes } = getTimePartsFromISO(dateString);
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+};
+
+export function ModalScheduleAppointment({
+    isOpen,
+    onClose,
+    patient,
+    mode = "admin"
+}: ModalScheduleAppointmentProps) {
     const { userAccountData } = userStore();
     const { showToast } = useToast();
 
     const [professionals, setProfessionals] = useState<TProfessionalData[]>([]);
     const [selectedProfessional, setSelectedProfessional] = useState<string>("");
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-    const [showCalendar, setShowCalendar] = useState(false);
     const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
     const [selectedSlot, setSelectedSlot] = useState<string>("");
     const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
     const [isLoadingProfessionals, setIsLoadingProfessionals] = useState(false);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (isOpen && userAccountData?.access_token) {
@@ -69,29 +102,15 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
         }
     }, [selectedProfessional, selectedDate, userAccountData?.access_token]);
 
-    // Fechar dropdown quando clicar fora
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsDropdownOpen(false);
-            }
-        };
-
-        if (isDropdownOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isDropdownOpen]);
-
     const fetchProfessionals = async () => {
         if (!userAccountData?.access_token) return;
 
         setIsLoadingProfessionals(true);
         try {
-            const response = await professionalService.getProfessionals(userAccountData.access_token);
+            const response =
+                mode === "patient"
+                    ? await professionalService.getPatientProfessionals(userAccountData.access_token)
+                    : await professionalService.getProfessionals(userAccountData.access_token);
             if (response.status === 200) {
                 // Tratar resposta da API (pode ser array direto ou objeto com results)
                 let rawData: any[] = [];
@@ -135,10 +154,16 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
         setIsLoadingSlots(true);
         try {
             // 1. Buscar disponibilidades do psicólogo (por dia da semana)
-            const availabilityResponse = await availabilityService.getAvailabilitiesByProfessional(
-                selectedProfessional,
-                userAccountData.access_token
-            );
+            const availabilityResponse =
+                mode === "patient"
+                    ? await availabilityService.getPatientAvailabilitiesByProfessional(
+                          selectedProfessional,
+                          userAccountData.access_token
+                      )
+                    : await availabilityService.getAvailabilitiesByProfessional(
+                          selectedProfessional,
+                          userAccountData.access_token
+                      );
 
             if (availabilityResponse.status !== 200) {
                 setAvailableSlots([]);
@@ -151,14 +176,17 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
             // 3. Filtrar disponibilidades para a data selecionada
             const allSlots = Array.isArray(availabilityResponse.data) ? availabilityResponse.data : [];
             const dateSlots = allSlots.filter((slot: any) => {
-                // Verificar se o slot é para a data selecionada, está disponível e não está agendado
                 if (slot.start_time && slot.start_time.includes("T")) {
-                    const slotDate = new Date(slot.start_time);
-                    const slotDateStr = slotDate.toISOString().split('T')[0];
+                    const slotDateStr = slot.start_time.slice(0, 10);
                     // Verificar se é para a data selecionada, status é "available" e patient_id é null (não agendado)
-                    return slotDateStr === selectedDateStr 
-                        && slot.status === "available" 
-                        && (slot.patient_id === null || slot.patient_id === undefined);
+                    if (mode === "patient") {
+                        return slotDateStr === selectedDateStr &&
+                            (slot.status === "available" || slot.status === "taken") &&
+                            (slot.patient_id === null || slot.patient_id === undefined);
+                    }
+                    return slotDateStr === selectedDateStr &&
+                        slot.status === "available" &&
+                        (slot.patient_id === null || slot.patient_id === undefined);
                 }
                 return false;
             });
@@ -175,13 +203,18 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
                 // Extrair horário de início e fim da disponibilidade (ISO datetime strings)
                 const slotStart = new Date(slot.start_time);
                 const slotEnd = new Date(slot.end_time);
+                const useUTC = hasTimezoneInfo(slot.start_time);
 
                 // Gerar slots de 1 hora dentro do intervalo disponível
                 const currentTime = new Date(slotStart);
                 while (currentTime < slotEnd) {
                     const slotTime = new Date(currentTime);
                     const nextTime = new Date(currentTime);
-                    nextTime.setHours(nextTime.getHours() + 1); // Incrementar 1 hora
+                    if (useUTC) {
+                        nextTime.setUTCMinutes(nextTime.getUTCMinutes() + 60);
+                    } else {
+                        nextTime.setMinutes(nextTime.getMinutes() + 60);
+                    }
 
                     // Verificar se o próximo horário não ultrapassa o fim da disponibilidade
                     if (nextTime > slotEnd) {
@@ -189,18 +222,25 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
                     }
 
                     // Criar um ID único para este slot de horário
-                    const slotId = `${slot.id}_${slotTime.getUTCHours()}${slotTime.getUTCMinutes().toString().padStart(2, "0")}`;
-                    
+                    const slotStartIso = slotTime.toISOString();
+                    const slotEndIso = nextTime.toISOString();
+                    const slotLabel = formatTimeLabel(slotStartIso);
+                    const slotId = `${slot.id}_${slotLabel.replace(":", "")}`;
+
                     availableTimeSlots.push({
                         id: slotId,
                         availability_id: slot.id, // ID da disponibilidade original
-                        start_time: slotTime.toISOString(),
-                        end_time: nextTime.toISOString(),
+                        start_time: slotStartIso,
+                        end_time: slotEndIso,
                         professional_id: slot.professional_id,
                         status: "available"
                     });
 
-                    currentTime.setHours(currentTime.getHours() + 1); // Incrementar 1 hora
+                    if (useUTC) {
+                        currentTime.setUTCMinutes(currentTime.getUTCMinutes() + 60);
+                    } else {
+                        currentTime.setMinutes(currentTime.getMinutes() + 60);
+                    }
                 }
             });
 
@@ -220,37 +260,63 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
         }
     };
 
-    const handleDateSelect = (date: Date) => {
-        setSelectedDate(date);
-        setShowCalendar(false);
+    const handleDateInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const isoValue = event.target.value;
+        if (!isoValue) {
+            setSelectedDate(null);
+            setSelectedSlot("");
+            return;
+        }
+
+        const parsed = new Date(isoValue);
+        if (!isNaN(parsed.getTime())) {
+            setSelectedDate(parsed);
+            setSelectedSlot("");
+        }
+    };
+
+    const handleDateSelect = (date: Date | null) => {
+        if (!date) {
+            setSelectedDate(null);
+            setSelectedSlot("");
+            return;
+        }
+
+        const normalized = new Date(date);
+        normalized.setHours(12, 0, 0, 0);
+        setSelectedDate(normalized);
         setSelectedSlot("");
     };
 
     const formatTimeSlot = (slot: AvailableSlot) => {
-        const startDate = new Date(slot.start_time);
-        const endDate = new Date(slot.end_time);
-        
-        const startTime = `${startDate.getUTCHours().toString().padStart(2, "0")}:${startDate.getUTCMinutes().toString().padStart(2, "0")}`;
-        const endTime = `${endDate.getUTCHours().toString().padStart(2, "0")}:${endDate.getUTCMinutes().toString().padStart(2, "0")}`;
-        
+        const startTime = formatTimeLabel(slot.start_time);
+        const endTime = formatTimeLabel(slot.end_time);
+
         return `${startTime} - ${endTime}`;
     };
 
     const handleSubmit = async () => {
-        if (!patient || !selectedProfessional || !selectedDate || !selectedSlot || !userAccountData?.access_token) {
+        if (!selectedProfessional || !selectedDate || !selectedSlot || !userAccountData?.access_token) {
             showToast("Erro!", "Por favor, preencha todos os campos.", "error");
             return;
         }
 
         // Verificar se há especialidade selecionada
         const selectedProfessionalData = professionals.find(p => p.id === selectedProfessional);
-        if (!selectedProfessionalData || !selectedProfessionalData.specialities || selectedProfessionalData.specialities.length === 0) {
-            showToast("Erro!", "O profissional selecionado não possui especialidades cadastradas.", "error");
-            return;
+        if (mode === "admin") {
+            if (!patient) {
+                showToast("Erro!", "Paciente não selecionado.", "error");
+                return;
+            }
+
+            if (!selectedProfessionalData || !selectedProfessionalData.specialities || selectedProfessionalData.specialities.length === 0) {
+                showToast("Erro!", "O profissional selecionado não possui especialidades cadastradas.", "error");
+                return;
+            }
         }
 
         // Se não há especialidade selecionada, usar a primeira
-        const specialtyId = selectedSpecialty || selectedProfessionalData.specialities[0].id;
+        const specialtyId = selectedProfessionalData?.specialities?.[0]?.id || "";
 
         setIsLoading(true);
         try {
@@ -263,17 +329,30 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
             // Usar o datetime do slot (já está configurado corretamente)
             const appointmentDate = new Date(slot.start_time);
 
-            const response = await scheduleService.postCreateAdminSchedule(
-                {
-                    patient_id: patient.id,
-                    professional_id: selectedProfessional,
-                    specialty_id: specialtyId,
-                    date: appointmentDate.toISOString(),
-                    availability_id: slot.availability_id,
-                    email: patient.email
-                },
-                userAccountData.access_token
-            );
+            let response;
+            if (mode === "patient") {
+                response = await scheduleService.postCreateSchedule(
+                    {
+                        availability_id: slot.availability_id
+                    },
+                    userAccountData.access_token
+                );
+            } else {
+                if (!patient) {
+                    throw new Error("Paciente não informado.");
+                }
+                response = await scheduleService.postCreateAdminSchedule(
+                    {
+                        patient_id: patient.id,
+                        professional_id: selectedProfessional,
+                        specialty_id: selectedSpecialty || specialtyId,
+                        date: appointmentDate.toISOString(),
+                        availability_id: slot.availability_id,
+                        email: patient.email
+                    },
+                    userAccountData.access_token
+                );
+            }
 
             if (response.status === 200 || response.status === 201) {
                 showToast("Sucesso!", "Consulta agendada com sucesso!", "success");
@@ -300,15 +379,13 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
     };
 
     const handleClose = () => {
-        setSelectedProfessional("");
-        setSelectedDate(null);
-        setShowCalendar(false);
-        setAvailableSlots([]);
-        setSelectedSlot("");
-        setSelectedSpecialty("");
-        setIsDropdownOpen(false);
-        onClose();
-    };
+    setSelectedProfessional("");
+    setSelectedDate(null);
+    setAvailableSlots([]);
+    setSelectedSlot("");
+    setSelectedSpecialty("");
+    onClose();
+};
 
     const selectedProfessionalData = professionals.find(p => p.id === selectedProfessional);
 
@@ -316,11 +393,11 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
         <Modal
             isOpen={isOpen}
             onRequestClose={handleClose}
-            className="fixed inset-0 flex items-center justify-center z-50"
-            overlayClassName="fixed inset-0 bg-black bg-opacity-50"
+            className="outline-none"
+            overlayClassName="fixed inset-0 z-[1200] flex items-center justify-center bg-black/50"
             contentLabel="Modal de Agendamento"
         >
-            <div className="bg-white rounded-lg shadow-xl w-[380px] lg:w-[600px] mx-4 max-h-[90vh] flex flex-col">
+            <div className="relative z-[1300] bg-[#f5f1eb] rounded-lg shadow-xl w-[380px] lg:w-[600px] mx-4 max-h-[90vh] flex flex-col">
                 <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
                     <div className="flex flex-row items-center gap-2">
                         <Calendar className="w-5 h-5 text-primary" />
@@ -328,7 +405,7 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
                             Agendar Consulta
                         </h2>
                     </div>
-                    <ButtonClose onClick={handleClose} />
+                    <ButtonClose onClose={handleClose} />
                 </div>
 
                 <div className="px-6 pb-6 flex-1 overflow-y-auto">
@@ -341,131 +418,58 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
                                         {patient.full_name} ({patient.email})
                                     </span>
                                 </div>
-                                <button
-                                    type="button"
-                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                                >
-                                    Visualizar
-                                </button>
+                                {mode === "admin" && (
+                                    <button
+                                        type="button"
+                                        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                    >
+                                        Visualizar
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}
 
                     <div className="space-y-4">
-                        {/* Seleção de Psicólogo */}
-                        <div className="relative" ref={dropdownRef}>
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Selecione o Psicólogo
                             </label>
                             {isLoadingProfessionals ? (
                                 <div className="text-sm text-gray-600">Carregando profissionais...</div>
                             ) : (
-                                <>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                        className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-left flex items-center justify-between hover:bg-gray-200 transition-colors"
-                                    >
-                                        <span className={selectedProfessional ? "text-gray-900 font-medium" : "text-gray-500"}>
-                                            {selectedProfessional 
-                                                ? (() => {
-                                                    const selected = professionals.find(p => p.id === selectedProfessional);
-                                                    return selected 
-                                                        ? `${selected.full_name} - ${formatSpecialities(selected.specialities)}`
-                                                        : "Selecione um psicólogo";
-                                                })()
-                                                : "Selecione um psicólogo"
-                                            }
-                                        </span>
-                                        <ChevronDown 
-                                            className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
-                                        />
-                                    </button>
-                                    
-                                    {isDropdownOpen && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
-                                            {professionals.length > 0 ? (
-                                                professionals.map((professional) => {
-                                                    const specialtiesText = formatSpecialities(professional.specialities);
-                                                    const isSelected = selectedProfessional === professional.id;
-                                                    return (
-                                                        <button
-                                                            key={professional.id}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setSelectedProfessional(professional.id);
-                                                                setSelectedSlot("");
-                                                                setSelectedSpecialty("");
-                                                                setIsDropdownOpen(false);
-                                                            }}
-                                                            className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors ${
-                                                                isSelected 
-                                                                    ? "bg-blue-50 text-gray-900" 
-                                                                    : "text-gray-700"
-                                                            }`}
-                                                        >
-                                                            <span className="text-sm font-medium">
-                                                                {professional.full_name} - {specialtiesText}
-                                                            </span>
-                                                            {isSelected && (
-                                                                <svg 
-                                                                    className="w-5 h-5 text-blue-600" 
-                                                                    fill="currentColor" 
-                                                                    viewBox="0 0 20 20"
-                                                                >
-                                                                    <path 
-                                                                        fillRule="evenodd" 
-                                                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                                                                        clipRule="evenodd" 
-                                                                    />
-                                                                </svg>
-                                                            )}
-                                                        </button>
-                                                    );
-                                                })
-                                            ) : (
-                                                <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                                                    Nenhum psicólogo cadastrado
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </>
+                                <select
+                                    value={selectedProfessional}
+                                    onChange={(e) => {
+                                        setSelectedProfessional(e.target.value);
+                                        setSelectedSlot("");
+                                        setSelectedSpecialty("");
+                                    }}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm text-gray-900"
+                                >
+                                    <option value="">Selecione um psicólogo</option>
+                                    {professionals.map((professional) => (
+                                        <option key={professional.id} value={professional.id}>
+                                            {professional.full_name} - {formatSpecialities(professional.specialities)}
+                                        </option>
+                                    ))}
+                                </select>
                             )}
                         </div>
 
-                        {/* Seleção de Data */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Selecione a Data
-                            </label>
-                            <div className="relative">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCalendar(!showCalendar)}
-                                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-left flex items-center justify-between hover:bg-gray-200 transition-colors"
-                                >
-                                    <span className={selectedDate ? "text-gray-900 font-medium" : "text-gray-500"}>
-                                        {selectedDate
-                                            ? selectedDate.toLocaleDateString('pt-BR')
-                                            : "Selecione uma data"}
-                                    </span>
-                                    <Calendar className="w-4 h-4 text-gray-500" />
-                                </button>
-                                {showCalendar && (
-                                    <div className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
-                                        <DatePicker
-                                            value={selectedDate ? selectedDate.toISOString().split('T')[0] : ""}
-                                            onDateSelect={handleDateSelect}
-                                            isOpen={showCalendar}
-                                            onClose={() => setShowCalendar(false)}
-                                        />
-                                    </div>
-                                )}
-                            </div>
+                        <div className="relative">
+                            <Input
+                                type="text"
+                                value={selectedDate ? selectedDate.toISOString().split("T")[0] : ""}
+                                onChange={handleDateInputChange}
+                                onDateChange={handleDateSelect}
+                                placeholder="Selecione uma data"
+                                label="Selecione a Data"
+                                inputDate
+                                calendarPosition="top"
+                            />
                         </div>
 
-                        {/* Seleção de Especialidade (se houver múltiplas) */}
                         {selectedProfessionalData && selectedProfessionalData.specialities && selectedProfessionalData.specialities.length > 1 && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -486,7 +490,6 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
                             </div>
                         )}
 
-                        {/* Horários Disponíveis */}
                         {selectedProfessional && selectedDate && (
                             <div>
                                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
@@ -526,16 +529,16 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
                 </div>
 
                 <div className="px-6 py-4 border-t border-gray-200 bg-white flex gap-3 justify-end">
+                   
                     <button
-                        onClick={handleClose}
-                        className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                      onClick={handleClose}
+                      className="w-full mt-6 bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md transition-colors text-sm"
                     >
-                        Cancelar
+                      <span>Cancelar</span>
                     </button>
                     <ButtonPrimary
                         onClick={handleSubmit}
                         disabled={isLoading || !selectedProfessional || !selectedDate || !selectedSlot}
-                        className="flex-1"
                     >
                         {isLoading ? "Agendando..." : "Continuar"}
                     </ButtonPrimary>

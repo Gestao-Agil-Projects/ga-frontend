@@ -142,7 +142,7 @@ export function ModalChangePassword({ isOpen, onClose, onSuccess }: ModalChangeP
             overlayClassName="modal-overlay"
             contentLabel="Modal de Alterar Senha"
         >
-            <div className="bg-neutral-09 rounded-lg shadow-xl w-[380px] lg:w-[500px] mx-4">
+            <div className="bg-[#f5f1eb] rounded-lg shadow-xl w-[380px] lg:w-[500px] mx-4">
                 <div className="flex justify-between items-center px-6 py-4">
                     <div className="flex flex-row items-center gap-2">
                         <Lock className="w-5 h-5 text-primary" />

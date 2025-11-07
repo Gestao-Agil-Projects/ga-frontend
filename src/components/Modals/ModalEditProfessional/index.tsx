@@ -1,21 +1,13 @@
 import { useState, useEffect } from "react";
 import Modal from "react-modal";
-import { Edit, Clock, Plus, X } from "lucide-react";
+import { Clock, Plus, X } from "lucide-react";
 import ButtonClose from "../../Buttons/ButtonClose";
 import ButtonPrimary from "../../Buttons/ButtonPrimary";
-import Input from "../../Inputs/Input";
-import { SpecialityDropdown } from "../../Dropdown/SpecialityDropdown";
-import { createProfessionalStore } from "../../../store/createProfessionalStore";
-import { professionalStore } from "../../../store/professionalStore";
-import { specialityStore } from "../../../store/specialityStore";
 import { availabilityStore } from "../../../store/availabilityStore";
-import { professionalService } from "../../../services/Professional/professional.service";
-import { specialityService } from "../../../services/Speciality/speciality.service";
 import { availabilityService } from "../../../services/Availability/availability.service";
 import { userStore } from "../../../store/userStore";
 import { useToast } from "../../../contexts/ToastContext";
 import type { TProfessionalData } from "../../../store/types/TProfessionalData";
-import type { TUpdateProfessionalData } from "../../../store/types/TUpdateProfessionalData";
 import type { TAvailabilityData } from "../../../store/types/TAvailabilityData";
 
 Modal.setAppElement("#root");
@@ -48,93 +40,89 @@ const TIME_OPTIONS = Array.from({ length: 17 }, (_, i) => {
     return `${hour.toString().padStart(2, "0")}:00`;
 });
 
+const hasTimezoneInfo = (dateString: string): boolean => {
+    if (!dateString) return false;
+    return /([zZ]|[+-]\d{2}:?\d{2})$/.test(dateString);
+};
+
+const extractTimeFromISO = (dateString: string): string => {
+    if (!dateString) return "";
+    const match = dateString.match(/(\d{2}:\d{2})/);
+    return match ? match[1] : "";
+};
+
+const WEEKDAY_TO_INDEX: Record<string, number> = {
+    MONDAY: 0,
+    TUESDAY: 1,
+    WEDNESDAY: 2,
+    THURSDAY: 3,
+    FRIDAY: 4,
+    SATURDAY: 5,
+    SUNDAY: 6,
+};
+
+const getDayIndexFromAvailability = (availability: any): number | null => {
+    if (availability?.weekday) {
+        const index = WEEKDAY_TO_INDEX[availability.weekday.toString().toUpperCase()];
+        if (typeof index === "number") {
+            return index;
+        }
+    }
+
+    if (availability?.day_of_week !== undefined && availability?.day_of_week !== null) {
+        const dayNumber = Number(availability.day_of_week);
+        if (!Number.isNaN(dayNumber)) {
+            if (dayNumber === 0) return 6;
+            if (dayNumber >= 1 && dayNumber <= 7) return dayNumber - 1;
+        }
+    }
+
+    if (availability?.start_time) {
+        const date = new Date(availability.start_time);
+        if (!Number.isNaN(date.getTime())) {
+            const useUTC = hasTimezoneInfo(availability.start_time);
+            const day = useUTC ? date.getUTCDay() : date.getDay();
+            if (day === 0) return 6;
+            return day - 1;
+        }
+    }
+
+    return null;
+};
+
 export default function ModalEditProfessional({
     isOpen,
     onClose,
     professional
 }: ModalEditProfessionalProps) {
-    const {
-        full_name,
-        email,
-        phone,
-        bio,
-        is_enabled,
-        specialities,
-        setFullName,
-        setEmail,
-        setPhone,
-        setBio,
-        setIsEnabled,
-        setSpecialities,
-        clearForm
-    } = createProfessionalStore();
-
-    const { updateProfessional } = professionalStore();
-    const { specialities: availableSpecialities, setSpecialities: setAvailableSpecialities } = specialityStore();
-    const { availabilities, setAvailabilities } = availabilityStore();
+    const { setAvailabilities } = availabilityStore();
     const { userAccountData } = userStore();
     const { showToast } = useToast();
 
-    const [activeTab, setActiveTab] = useState<"info" | "schedule">("info");
-    const [isLoading, setIsLoading] = useState(false);
-    const [isLoadingSpecialities, setIsLoadingSpecialities] = useState(false);
-    const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [schedule, setSchedule] = useState<DaySchedule[]>(
+    const createInitialSchedule = (): DaySchedule[] =>
         DAYS.map(day => ({
             day: day.value,
             label: day.label,
             enabled: false,
             timeSlots: [{ start: "09:00", end: "17:00" }]
-        }))
-    );
+        }));
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
+    const [schedule, setSchedule] = useState<DaySchedule[]>(() => createInitialSchedule());
 
     useEffect(() => {
         if (isOpen && professional && userAccountData?.access_token) {
-            setFullName(professional.full_name || "");
-            setEmail(professional.email || "");
-            setPhone(professional.phone || "");
-            setBio(professional.bio || "");
-            setIsEnabled(professional.is_enabled !== false);
-            // Verificar se specialities existe e é um array antes de usar map
-            if (professional.specialities && Array.isArray(professional.specialities)) {
-                setSpecialities(professional.specialities.map(s => s.id));
-            } else {
-                setSpecialities([]);
-            }
-            fetchSpecialities();
+            setSchedule(createInitialSchedule());
             fetchAvailabilities();
         }
     }, [isOpen, professional, userAccountData?.access_token]);
 
     useEffect(() => {
         if (!isOpen) {
-            clearForm();
-            setActiveTab("info");
-            setSchedule(DAYS.map(day => ({
-                day: day.value,
-                label: day.label,
-                enabled: false,
-                timeSlots: [{ start: "09:00", end: "17:00" }]
-            })));
+            setSchedule(createInitialSchedule());
         }
     }, [isOpen]);
-
-    const fetchSpecialities = async () => {
-        if (!userAccountData?.access_token) return;
-        
-        setIsLoadingSpecialities(true);
-        try {
-            const response = await specialityService.getSpecialities(userAccountData.access_token);
-            if (response.status === 200) {
-                setAvailableSpecialities(response.data);
-            }
-        } catch (error: any) {
-            showToast("Erro!", "Erro ao carregar especialidades.", "error");
-        } finally {
-            setIsLoadingSpecialities(false);
-        }
-    };
 
     const fetchAvailabilities = async () => {
         if (!professional || !userAccountData?.access_token) return;
@@ -167,28 +155,34 @@ export default function ModalEditProfessional({
         }));
 
         availabilities.forEach(availability => {
-            const startDate = new Date(availability.start_time);
-            const endDate = new Date(availability.end_time);
-            const dayIndex = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1; // Segunda = 0
-            
-            if (dayIndex >= 0 && dayIndex < newSchedule.length) {
-                const daySchedule = newSchedule[dayIndex];
-                daySchedule.enabled = true;
+            const dayIndex = getDayIndexFromAvailability(availability);
+            if (dayIndex === null || dayIndex < 0 || dayIndex >= newSchedule.length) {
+                return;
+            }
+
+            const startTime = extractTimeFromISO(availability.start_time);
+            const endTime = extractTimeFromISO(availability.end_time);
+
+            if (!startTime || !endTime) {
+                return;
+            }
+
+            const daySchedule = newSchedule[dayIndex];
+            daySchedule.enabled = true;
+
+            const alreadyExists = daySchedule.timeSlots.some(
+                timeSlot => timeSlot.start === startTime && timeSlot.end === endTime
+            );
+
+            if (!alreadyExists) {
                 daySchedule.timeSlots.push({
-                    start: `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`,
-                    end: `${endDate.getHours().toString().padStart(2, "0")}:${endDate.getMinutes().toString().padStart(2, "0")}`
+                    start: startTime,
+                    end: endTime
                 });
             }
         });
 
         setSchedule(newSchedule);
-    };
-
-    const handleSpecialityToggle = (specialityId: string) => {
-        const newSpecialities = specialities.includes(specialityId)
-            ? specialities.filter((id: string) => id !== specialityId)
-            : [...specialities, specialityId];
-        setSpecialities(newSpecialities);
     };
 
     const handleDayToggle = (dayIndex: number) => {
@@ -262,250 +256,218 @@ export default function ModalEditProfessional({
                 if (!daySchedule.enabled || daySchedule.timeSlots.length === 0) continue;
 
                 const weekday = getWeekdayForAPI(daySchedule.day);
-                
-                // DEBUG: Log o que está no schedule para este dia
-                console.log(`[DEBUG] Processando ${daySchedule.day} (${weekday}):`, {
-                    enabled: daySchedule.enabled,
-                    timeSlots: daySchedule.timeSlots,
-                    timeSlotsCount: daySchedule.timeSlots.length
-                });
-                
-                // Remover timeSlots duplicados e inválidos, manter apenas o ÚLTIMO válido (o mais recente)
-                let lastValidTimeSlot: { start: string; end: string } | null = null;
-                const seenTimeSlots = new Set<string>();
+                const weekdayLower = weekday.toLowerCase();
+                const weekdayUpper = weekday.toUpperCase();
+                const targetDayOfWeek = getDayOfWeekNumber(daySchedule.day).toString();
+
                 const validTimeSlots: { start: string; end: string }[] = [];
-                
+                const seenTimeSlots = new Set<string>();
+                console.log(`[DEBUG] Processando ${daySchedule.day} (${weekday}):`, daySchedule);
+                console.log(`[DEBUG] Horários informados:`, daySchedule.timeSlots);
+
                 for (const timeSlot of daySchedule.timeSlots) {
-                    // DEBUG: Log cada timeSlot sendo processado
                     console.log(`[DEBUG] Processando timeSlot:`, timeSlot);
-                    // Validar se o horário de fim é maior que o de início
                     const [startHour, startMinute] = timeSlot.start.split(":").map(Number);
                     const [endHour, endMinute] = timeSlot.end.split(":").map(Number);
-                    
+
                     if (endHour < startHour || (endHour === startHour && endMinute <= startMinute)) {
-                        continue; // Pular horários inválidos
+                        console.log(`[DEBUG] Horário inválido (fim <= início) ignorado:`, timeSlot);
+                        continue;
                     }
 
-                    // Validar se o intervalo não excede 2 horas (limite da API)
                     const startMinutes = startHour * 60 + startMinute;
                     const endMinutes = endHour * 60 + endMinute;
                     const durationMinutes = endMinutes - startMinutes;
-                    
-                    if (durationMinutes > 120) { // 2 horas = 120 minutos
-                        continue; // Pular horários que excedem 2 horas (já avisamos antes)
-                    }
+                    console.log(`[DEBUG] Duração do horário ${timeSlot.start} - ${timeSlot.end}:`, durationMinutes, "minutos");
 
-                    // Criar chave única para o horário
-                    const timeKey = `${timeSlot.start}-${timeSlot.end}`;
-                    
-                    // Se já vimos este horário, pular (evitar duplicatas)
-                    if (seenTimeSlots.has(timeKey)) {
+                    if (durationMinutes < 60 || durationMinutes > 120) {
+                        console.log(`[DEBUG] Horário fora da duração permitida (60-120 min):`, timeSlot);
+                        if (durationMinutes < 60) {
+                            showToast(
+                                "Aviso!",
+                                `O horário ${timeSlot.start} - ${timeSlot.end} deve ter duração de pelo menos 1 hora.`,
+                                "warning"
+                            );
+                        }
                         continue;
                     }
-                    
+
+                    const timeKey = `${timeSlot.start}-${timeSlot.end}`;
+                    if (seenTimeSlots.has(timeKey)) {
+                        console.log(`[DEBUG] Horário duplicado ${timeKey} ignorado.`);
+                        continue;
+                    }
+
                     seenTimeSlots.add(timeKey);
-                    
-                    // Adicionar à lista de horários válidos
                     validTimeSlots.push(timeSlot);
-                    lastValidTimeSlot = timeSlot; // Manter o último válido
                     console.log(`[DEBUG] Horário válido adicionado para ${daySchedule.day}:`, timeSlot);
                 }
 
-                // Se não há horário válido, pular este dia
-                if (!lastValidTimeSlot) {
-                    console.log(`[DEBUG] Nenhum horário válido encontrado para ${daySchedule.day}`);
+                if (validTimeSlots.length === 0) {
+                    console.log(`[DEBUG] Nenhum horário válido encontrado para ${daySchedule.day}. Pulando.`);
                     continue;
                 }
-                
-                console.log(`[DEBUG] Total de horários válidos encontrados para ${daySchedule.day}:`, validTimeSlots.length);
-                console.log(`[DEBUG] Horário final a ser processado para ${daySchedule.day} (último válido):`, lastValidTimeSlot);
-                
-                // Usar o último horário válido (o mais recente digitado pelo usuário)
-                const firstValidTimeSlot = lastValidTimeSlot;
 
+                console.log(`[DEBUG] Total de horários válidos encontrados para ${daySchedule.day}:`, validTimeSlots.length);
+ 
                 // Extrair horários da disponibilidade existente para comparar
                 const extractTimeFromAvailability = (av: any) => {
-                    let avStart = "";
-                    let avEnd = "";
-                    
-                    if (av.start_time) {
-                        if (av.start_time.includes("T")) {
-                            const avStartDate = new Date(av.start_time);
-                            avStart = `${avStartDate.getHours().toString().padStart(2, "0")}:${avStartDate.getMinutes().toString().padStart(2, "0")}`;
-                        } else {
-                            avStart = av.start_time.slice(0, 5);
-                        }
-                    }
-                    
-                    if (av.end_time) {
-                        if (av.end_time.includes("T")) {
-                            const avEndDate = new Date(av.end_time);
-                            avEnd = `${avEndDate.getHours().toString().padStart(2, "0")}:${avEndDate.getMinutes().toString().padStart(2, "0")}`;
-                        } else {
-                            avEnd = av.end_time.slice(0, 5);
-                        }
-                    }
-                    
+                    const avStart = extractTimeFromISO(av.start_time);
+                    const avEnd = extractTimeFromISO(av.end_time);
                     return { avStart, avEnd };
                 };
 
-                // Verificar se já existe disponibilidade para este weekday E horário específico
-                const existingAvailability = existingAvailabilities.find((av: any) => {
-                    // Tentar múltiplas formas de comparação de weekday
-                    const avWeekday = av.weekday?.toUpperCase();
-                    const avDayOfWeek = av.day_of_week?.toString();
-                    const targetDayOfWeek = getDayOfWeekNumber(daySchedule.day).toString();
-                    
-                    // Verificar se é o mesmo weekday
-                    let isSameWeekday = false;
-                    if (avWeekday && avWeekday === weekday) {
-                        isSameWeekday = true;
-                    } else if (avDayOfWeek && avDayOfWeek === targetDayOfWeek) {
-                        isSameWeekday = true;
-                    } else {
-                        const weekdayVariations = [
-                            weekday,
-                            weekday.toLowerCase(),
-                            weekday.toUpperCase(),
-                        ];
-                        if (avWeekday && weekdayVariations.includes(avWeekday)) {
+                for (const timeSlot of validTimeSlots) {
+                    const existingAvailability = existingAvailabilities.find((av: any) => {
+                        const avWeekday = av.weekday?.toUpperCase();
+                        const avDayOfWeek = av.day_of_week?.toString();
+
+                        let isSameWeekday = false;
+                        if (avWeekday && avWeekday === weekdayUpper) {
                             isSameWeekday = true;
+                        } else if (avDayOfWeek && avDayOfWeek === targetDayOfWeek) {
+                            isSameWeekday = true;
+                        } else {
+                            const weekdayVariations = [weekday, weekdayLower, weekdayUpper];
+                            if (avWeekday && weekdayVariations.includes(avWeekday)) {
+                                isSameWeekday = true;
+                            }
                         }
-                    }
-                    
-                    if (!isSameWeekday) return false;
-                    
-                    // Se é o mesmo weekday, verificar se é o mesmo horário
-                    const { avStart, avEnd } = extractTimeFromAvailability(av);
-                    return avStart === firstValidTimeSlot.start && avEnd === firstValidTimeSlot.end;
-                });
 
-                // FAZER APENAS UMA CHAMADA POR DIA
-                try {
-                    if (existingAvailability) {
-                        // Atualizar disponibilidade existente para este weekday
-                        const response = await availabilityService.putUpdateAvailability(
-                            existingAvailability.id,
-                            {
-                                weekday: weekday,
-                                start_time: firstValidTimeSlot.start, // Formato HH:MM
-                                end_time: firstValidTimeSlot.end, // Formato HH:MM
-                                is_active: true
-                            },
-                            userAccountData.access_token
-                        );
+                        if (!isSameWeekday) return false;
 
-                        if (response.status === 200) {
-                            updatedCount++;
-                        }
-                    } else {
-                        // Criar nova disponibilidade para este weekday
-                        // A API espera datetime completo, não apenas HH:MM
-                        // Construir datetime baseado na próxima ocorrência do weekday
-                        const today = new Date();
-                        const dayNumber = getDayOfWeekNumber(daySchedule.day);
-                        const currentDay = today.getDay() === 0 ? 7 : today.getDay();
-                        const daysUntilDay = dayNumber >= currentDay 
-                            ? dayNumber - currentDay 
-                            : 7 - currentDay + dayNumber;
-                        
-                        const targetDate = new Date(today);
-                        targetDate.setDate(today.getDate() + daysUntilDay);
-                        targetDate.setHours(0, 0, 0, 0);
+                        const { avStart, avEnd } = extractTimeFromAvailability(av);
+                        return avStart === timeSlot.start && avEnd === timeSlot.end;
+                    });
 
-                        const [startHour, startMinute] = firstValidTimeSlot.start.split(":").map(Number);
-                        const [endHour, endMinute] = firstValidTimeSlot.end.split(":").map(Number);
-
-                        const startDateTime = new Date(targetDate);
-                        startDateTime.setHours(startHour, startMinute, 0, 0);
-
-                        const endDateTime = new Date(targetDate);
-                        endDateTime.setHours(endHour, endMinute, 0, 0);
-
-                        try {
-                            const response = await availabilityService.postCreateAvailability(
+                    try {
+                        if (existingAvailability) {
+                            const response = await availabilityService.putUpdateAvailability(
+                                existingAvailability.id,
                                 {
-                                    professional_id: professional.id,
                                     weekday: weekday,
-                                    start_time: startDateTime.toISOString(), // Datetime completo
-                                    end_time: endDateTime.toISOString(), // Datetime completo
-                                    is_active: true
+                                    start_time: timeSlot.start,
+                                    end_time: timeSlot.end,
+                                    is_active: true,
                                 },
                                 userAccountData.access_token
                             );
 
-                            if (response.status === 200 || response.status === 201) {
-                                successCount++;
+                            if (response.status === 200) {
+                                updatedCount++;
+                                existingAvailabilities = existingAvailabilities.map((av: any) =>
+                                    av.id === existingAvailability.id
+                                        ? {
+                                              ...av,
+                                              ...response.data,
+                                          }
+                                        : av
+                                );
                             }
-                        } catch (createError: any) {
-                            // Se der 409 (Conflict), significa que já existe disponibilidade conflitante
-                            if (createError.response?.status === 409) {
-                                // Buscar a disponibilidade conflitante com o mesmo horário específico
-                                const conflictAvailability = existingAvailabilities.find((av: any) => {
-                                    // Verificar weekday
-                                    const avWeekday = av.weekday?.toUpperCase();
-                                    const avDayOfWeek = av.day_of_week?.toString();
-                                    const targetDayOfWeek = getDayOfWeekNumber(daySchedule.day).toString();
-                                    
-                                    const isSameWeekday = avWeekday === weekday || avDayOfWeek === targetDayOfWeek;
-                                    if (!isSameWeekday) return false;
-                                    
-                                    // Verificar se é o mesmo horário específico
-                                    const { avStart, avEnd } = extractTimeFromAvailability(av);
-                                    return avStart === firstValidTimeSlot.start && avEnd === firstValidTimeSlot.end;
-                                });
-                                
-                                if (conflictAvailability) {
-                                    // Se encontrou conflito com o mesmo horário, atualizar
-                                    try {
-                                        const updateResponse = await availabilityService.putUpdateAvailability(
-                                            conflictAvailability.id,
-                                            {
-                                                weekday: weekday,
-                                                start_time: firstValidTimeSlot.start, // HH:MM para update
-                                                end_time: firstValidTimeSlot.end, // HH:MM para update
-                                                is_active: true
-                                            },
-                                            userAccountData.access_token
-                                        );
-                                        
-                                        if (updateResponse.status === 200) {
-                                            updatedCount++;
+                        } else {
+                            const today = new Date();
+                            const dayNumber = getDayOfWeekNumber(daySchedule.day);
+                            const currentDay = today.getDay() === 0 ? 7 : today.getDay();
+                            const daysUntilDay =
+                                dayNumber >= currentDay ? dayNumber - currentDay : 7 - currentDay + dayNumber;
+
+                            const targetDate = new Date(today);
+                            targetDate.setDate(today.getDate() + daysUntilDay);
+                            targetDate.setHours(0, 0, 0, 0);
+
+                            const dateString = `${targetDate.getFullYear()}-${(targetDate.getMonth() + 1)
+                                .toString()
+                                .padStart(2, "0")}-${targetDate.getDate().toString().padStart(2, "0")}`;
+
+                            const startDateTimeString = `${dateString}T${timeSlot.start}:00`;
+                            const endDateTimeString = `${dateString}T${timeSlot.end}:00`;
+
+                            try {
+                                const response = await availabilityService.postCreateAvailability(
+                                    {
+                                        professional_id: professional.id,
+                                        weekday: weekday,
+                                        start_time: startDateTimeString,
+                                        end_time: endDateTimeString,
+                                        is_active: true,
+                                    },
+                                    userAccountData.access_token
+                                );
+
+                                if (response.status === 200 || response.status === 201) {
+                                    successCount++;
+                                    existingAvailabilities.push(response.data);
+                                }
+                            } catch (createError: any) {
+                                if (createError.response?.status === 409) {
+                                    const conflictAvailability = existingAvailabilities.find((av: any) => {
+                                        const avWeekday = av.weekday?.toUpperCase();
+                                        const avDayOfWeek = av.day_of_week?.toString();
+                                        const targetDayOfWeek = getDayOfWeekNumber(daySchedule.day).toString();
+
+                                        const isSameWeekday = avWeekday === weekday || avDayOfWeek === targetDayOfWeek;
+                                        if (!isSameWeekday) return false;
+
+                                        const { avStart, avEnd } = extractTimeFromAvailability(av);
+                                        return avStart === timeSlot.start && avEnd === timeSlot.end;
+                                    });
+
+                                    if (conflictAvailability) {
+                                        try {
+                                            const updateResponse = await availabilityService.putUpdateAvailability(
+                                                conflictAvailability.id,
+                                                {
+                                                    weekday: weekday,
+                                                    start_time: timeSlot.start,
+                                                    end_time: timeSlot.end,
+                                                    is_active: true,
+                                                },
+                                                userAccountData.access_token
+                                            );
+
+                                            if (updateResponse.status === 200) {
+                                                updatedCount++;
+                                                existingAvailabilities = existingAvailabilities.map((av: any) =>
+                                                    av.id === conflictAvailability.id
+                                                        ? {
+                                                              ...av,
+                                                              ...updateResponse.data,
+                                                          }
+                                                        : av
+                                                );
+                                            }
+                                        } catch (updateError) {
+                                            errorCount++;
+                                            console.error("Erro ao atualizar disponibilidade conflitante:", updateError);
                                         }
-                                    } catch (updateError) {
+                                    } else {
+                                        showToast(
+                                            "Aviso!",
+                                            `Não foi possível criar o horário ${timeSlot.start} - ${timeSlot.end} para ${daySchedule.day}. Já existe um horário conflitante.`,
+                                            "warning"
+                                        );
                                         errorCount++;
-                                        console.error("Erro ao atualizar disponibilidade conflitante:", updateError);
                                     }
                                 } else {
-                                    // Se não encontrou na lista inicial, pode ser conflito de sobreposição
-                                    // Nesse caso, não fazer nada (já existe disponibilidade conflitante)
-                                    showToast(
-                                        "Aviso!",
-                                        `Não foi possível criar o horário ${firstValidTimeSlot.start} - ${firstValidTimeSlot.end} para ${daySchedule.day}. Já existe um horário conflitante.`,
-                                        "warning"
-                                    );
                                     errorCount++;
+                                    console.error("Erro ao criar disponibilidade:", {
+                                        weekday: weekday,
+                                        start_time: startDateTimeString,
+                                        end_time: endDateTimeString,
+                                        error: createError.response?.data,
+                                    });
                                 }
-                            } else {
-                                // Qualquer outro erro (422, 400, etc) - tratar como erro
-                                errorCount++;
-                                console.error("Erro ao criar disponibilidade:", {
-                                    weekday,
-                                    start_time: startDateTime.toISOString(),
-                                    end_time: endDateTime.toISOString(),
-                                    error: createError.response?.data
-                                });
                             }
                         }
+                    } catch (error: any) {
+                        errorCount++;
+                        console.error("Erro ao processar disponibilidade:", {
+                            weekday: weekday,
+                            start_time: timeSlot.start,
+                            end_time: timeSlot.end,
+                            error: error.response?.data,
+                        });
                     }
-                } catch (error: any) {
-                    errorCount++;
-                    console.error("Erro ao processar disponibilidade:", {
-                        weekday,
-                        start_time: firstValidTimeSlot.start,
-                        end_time: firstValidTimeSlot.end,
-                        error: error.response?.data
-                    });
                 }
             }
 
@@ -550,59 +512,9 @@ export default function ModalEditProfessional({
         return dayMap[dayValue] ?? 0;
     };
 
-    const handleSaveInfo = async () => {
-        if (!professional || !userAccountData?.access_token) return;
-
-        if (!full_name.trim() || !email.trim() || !phone.trim()) {
-            showToast("Erro!", "Por favor, preencha todos os campos obrigatórios.", "error");
-            return;
-        }
-
-        setIsLoading(true);
-        try {
-            const updateData: TUpdateProfessionalData = {
-                full_name: full_name.trim(),
-                email: email.trim(),
-                phone: phone.trim(),
-                bio: bio.trim(),
-                is_enabled,
-                specialities
-            };
-
-            const response = await professionalService.putUpdateProfessional(
-                professional.id,
-                updateData,
-                userAccountData.access_token
-            );
-
-            if (response.status === 200) {
-                updateProfessional(professional.id, response.data);
-                showToast("Sucesso!", "Profissional atualizado com sucesso!", "success");
-                handleClose();
-            }
-        } catch (error: any) {
-            showToast("Erro!", error.response?.data?.detail || "Erro ao atualizar profissional.", "error");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const handleClose = () => {
-        clearForm();
-        setActiveTab("info");
+        setSchedule(createInitialSchedule());
         onClose();
-    };
-
-    const filteredSpecialities = searchTerm.trim()
-        ? availableSpecialities.filter(speciality =>
-            speciality.title.toLowerCase().includes(searchTerm.toLowerCase()))
-        : [];
-
-    const handleSpecialitySelect = (specialityId: string) => {
-        if (!specialities.includes(specialityId)) {
-            setSpecialities([...specialities, specialityId]);
-        }
-        setSearchTerm("");
     };
 
     return (
@@ -611,186 +523,113 @@ export default function ModalEditProfessional({
             onRequestClose={handleClose}
             className="modal-content"
             overlayClassName="modal-overlay"
-            contentLabel="Modal de Editar Profissional"
+            contentLabel="Modal de Agenda do Profissional"
         >
-            <div className="bg-neutral-09 rounded-lg shadow-xl w-[380px] lg:w-[700px] mx-4 max-h-[90vh] flex flex-col">
+            <div className="bg-[#f5f1eb] rounded-lg shadow-xl w-[360px] lg:w-[560px] mx-4 max-h-[90vh] flex flex-col">
                 <div className="flex justify-between items-center px-6 py-4 border-b">
                     <div className="flex flex-row items-center gap-2">
-                        <Edit className="w-5 h-5 text-primary" />
+                        <Clock className="w-5 h-5 text-primary" />
                         <h2 className="text-lg font-semibold text-neutral-18">
-                            Editar Profissional
+                            Agenda do Profissional
                         </h2>
                     </div>
                     <ButtonClose onClose={handleClose} />
                 </div>
 
-                {/* Tabs */}
-                <div className="flex border-b px-6">
-                    <button
-                        onClick={() => setActiveTab("info")}
-                        className={`px-4 py-3 font-medium text-sm transition-colors ${
-                            activeTab === "info"
-                                ? "text-primary border-b-2 border-primary"
-                                : "text-neutral-19 hover:text-primary"
-                        }`}
-                    >
-                        Informações Básicas
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("schedule")}
-                        className={`px-4 py-3 font-medium text-sm transition-colors flex items-center gap-2 ${
-                            activeTab === "schedule"
-                                ? "text-primary border-b-2 border-primary"
-                                : "text-neutral-19 hover:text-primary"
-                        }`}
-                    >
-                        <Clock className="w-4 h-4" />
-                        Agenda
-                    </button>
-                </div>
+                <div className="flex-1 overflow-y-auto px-6 pb-6">
+                    <div className="flex items-center gap-2 mb-6 mt-4">
+                        <Clock className="w-5 h-5 text-primary" />
+                        <h3 className="text-lg font-semibold text-gray-900">Configurar Horários de Trabalho</h3>
+                    </div>
 
-                <div className="px-6 pb-6 flex-1 overflow-y-auto">
-                    {activeTab === "info" ? (
-                        <div className="space-y-4 mt-4">
-                            <Input
-                                type="text"
-                                value={full_name}
-                                onChange={(e) => setFullName(e.target.value)}
-                                placeholder="Ex: Dr. João Silva"
-                                label="Nome Completo"
-                                required
-                            />
-
-                            <Input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Ex: joao.silva@email.com"
-                                label="E-mail"
-                                required
-                            />
-
-                            <Input
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="Ex: 11999999999"
-                                label="Telefone"
-                                required
-                            />
-
-                            <Input
-                                type="text"
-                                value={bio}
-                                onChange={(e) => setBio(e.target.value)}
-                                placeholder="Ex: Biografia do profissional"
-                                label="Biografia"
-                            />
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Buscar Especialidades
-                                </label>
-                                <Input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Buscar especialidades..."
-                                    label=""
-                                />
-                            </div>
-
-                            {specialities.length > 0 && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Especialidades Selecionadas
-                                    </label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {specialities.map(specialityId => {
-                                            const speciality = availableSpecialities.find(s => s.id === specialityId);
-                                            return speciality ? (
-                                                <div key={specialityId} className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                                    <span>{speciality.title}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleSpecialityToggle(specialityId)}
-                                                        className="text-blue-600 hover:text-blue-800"
-                                                    >
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            ) : null;
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="mt-6">
-                                <ButtonPrimary
-                                    onClick={handleSaveInfo}
-                                    disabled={!full_name.trim() || !email.trim() || !phone.trim() || isLoading}
-                                >
-                                    {isLoading ? "Atualizando..." : "Atualizar Informações"}
-                                </ButtonPrimary>
-                            </div>
+                    {isLoadingSchedule ? (
+                        <div className="text-center py-8">
+                            <div className="text-gray-600">Carregando horários...</div>
                         </div>
                     ) : (
-                        <div className="space-y-4 mt-4">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Clock className="w-5 h-5 text-primary" />
-                                <h3 className="text-lg font-semibold text-gray-900">Configurar Horários de Trabalho</h3>
-                            </div>
-
-                            {isLoadingSchedule ? (
-                                <div className="text-center py-8">
-                                    <div className="text-gray-600">Carregando horários...</div>
-                                </div>
-                            ) : (
-                                <>
-                                    {schedule.map((daySchedule, dayIndex) => (
-                                        <div key={daySchedule.day} className="border rounded-lg p-4">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={daySchedule.enabled}
-                                                    onChange={() => handleDayToggle(dayIndex)}
-                                                    className="w-4 h-4 text-primary rounded focus:ring-primary"
-                                                />
-                                                <label className="font-medium text-gray-900 cursor-pointer" onClick={() => handleDayToggle(dayIndex)}>
-                                                    {daySchedule.label}
-                                                </label>
+                        <>
+                            <div className="space-y-4">
+                                {schedule.map((daySchedule, dayIndex) => {
+                                    const isEnabled = daySchedule.enabled;
+                                    return (
+                                        <div
+                                            key={daySchedule.day}
+                                            className={`rounded-xl border transition-colors shadow-sm ${
+                                                isEnabled
+                                                    ? "border-primary/30 bg-primary/5"
+                                                    : "border-gray-200 bg-white"
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between px-4 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isEnabled}
+                                                        onChange={() => handleDayToggle(dayIndex)}
+                                                        className="w-4 h-4 text-primary rounded focus:ring-primary"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDayToggle(dayIndex)}
+                                                        className="text-sm font-medium text-gray-900 hover:text-primary transition-colors"
+                                                    >
+                                                        {daySchedule.label}
+                                                    </button>
+                                                </div>
+                                                <span className="text-xs font-medium text-gray-500">
+                                                    {isEnabled
+                                                        ? `${daySchedule.timeSlots.length} horário(s)`
+                                                        : "Desativado"}
+                                                </span>
                                             </div>
 
-                                            {daySchedule.enabled && (
-                                                <div className="ml-7 space-y-3">
+                                            {isEnabled && (
+                                                <div className="px-4 pb-4 space-y-3">
                                                     {daySchedule.timeSlots.map((timeSlot, slotIndex) => (
-                                                        <div key={slotIndex} className="flex items-center gap-2">
-                                                            <select
-                                                                value={timeSlot.start}
-                                                                onChange={(e) => handleTimeChange(dayIndex, slotIndex, "start", e.target.value)}
-                                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                                                            >
-                                                                {TIME_OPTIONS.map(time => (
-                                                                    <option key={time} value={time}>{time}</option>
-                                                                ))}
-                                                            </select>
-                                                            <span className="text-gray-600">até</span>
-                                                            <select
-                                                                value={timeSlot.end}
-                                                                onChange={(e) => handleTimeChange(dayIndex, slotIndex, "end", e.target.value)}
-                                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                                                            >
-                                                                {TIME_OPTIONS.map(time => (
-                                                                    <option key={time} value={time}>{time}</option>
-                                                                ))}
-                                                            </select>
+                                                        <div
+                                                            key={slotIndex}
+                                                            className="flex flex-wrap items-center gap-3 rounded-lg border border-blue-100 bg-white px-4 py-3 shadow-sm"
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <label className="text-xs font-medium text-gray-500">
+                                                                    Início
+                                                                </label>
+                                                                <select
+                                                                    value={timeSlot.start}
+                                                                    onChange={(e) => handleTimeChange(dayIndex, slotIndex, "start", e.target.value)}
+                                                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                                                                >
+                                                                    {TIME_OPTIONS.map((time) => (
+                                                                        <option key={time} value={time}>
+                                                                            {time}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                            <span className="text-gray-400 text-sm">até</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <label className="text-xs font-medium text-gray-500">
+                                                                    Fim
+                                                                </label>
+                                                                <select
+                                                                    value={timeSlot.end}
+                                                                    onChange={(e) => handleTimeChange(dayIndex, slotIndex, "end", e.target.value)}
+                                                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                                                                >
+                                                                    {TIME_OPTIONS.map((time) => (
+                                                                        <option key={time} value={time}>
+                                                                            {time}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
                                                             <div className="px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium">
                                                                 {timeSlot.start} - {timeSlot.end}
                                                             </div>
                                                             {daySchedule.timeSlots.length > 1 && (
                                                                 <button
                                                                     onClick={() => handleRemoveTimeSlot(dayIndex, slotIndex)}
-                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                    className="ml-auto p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                                 >
                                                                     <X className="w-4 h-4" />
                                                                 </button>
@@ -799,57 +638,47 @@ export default function ModalEditProfessional({
                                                     ))}
                                                     <button
                                                         onClick={() => handleAddTimeSlot(dayIndex)}
-                                                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                                                        className="flex items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-600 hover:border-primary hover:text-primary transition-colors"
                                                     >
                                                         <Plus className="w-4 h-4" />
-                                                        Horário
+                                                        Adicionar horário
                                                     </button>
                                                 </div>
                                             )}
                                         </div>
-                                    ))}
+                                    );
+                                })}
+                            </div>
 
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                                        <h4 className="font-semibold text-blue-900 mb-2">Dicas</h4>
-                                        <ul className="text-sm text-blue-800 space-y-1">
-                                            <li>• Marque os dias em que o profissional atende</li>
-                                            <li>• Configure múltiplos horários por dia (manhã e tarde)</li>
-                                            <li>• Use "+ Horário" para adicionar novos períodos de atendimento</li>
-                                            <li>• Os horários disponíveis vão de 06:00 às 22:00</li>
-                                        </ul>
-                                    </div>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                                <h4 className="font-semibold text-blue-900 mb-2">Dicas</h4>
+                                <ul className="text-sm text-blue-800 space-y-1">
+                                    <li>• Marque os dias em que o profissional atende</li>
+                                    <li>• Configure múltiplos horários por dia (manhã e tarde)</li>
+                                    <li>• Use "Adicionar horário" para novos períodos</li>
+                                    <li>• Os horários disponíveis vão de 06:00 às 22:00</li>
+                                </ul>
+                            </div>
 
-                                    <div className="mt-6 flex gap-3">
-                                        <button
-                                            onClick={handleClose}
-                                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <ButtonPrimary
-                                            onClick={handleSaveSchedule}
-                                            disabled={isLoading}
-                                            className="flex-1"
-                                        >
-                                            {isLoading ? "Salvando..." : "Atualizar Horários"}
-                                        </ButtonPrimary>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                            <div className="mt-6 flex gap-3 justify-end">
+                            <button
+                            onClick={handleClose}
+
+                            className="w-full mt-6 bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md transition-colors text-sm"
+                            >
+                            <span>Cancelar</span>
+                            </button>
+                                <ButtonPrimary
+                                    onClick={handleSaveSchedule}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? "Salvando..." : "Atualizar Horários"}
+                                </ButtonPrimary>
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
-
-            <SpecialityDropdown
-                isVisible={searchTerm.trim().length > 0}
-                position={{ top: 0, left: 0, width: 0 }}
-                isLoadingSpecialities={isLoadingSpecialities}
-                filteredSpecialities={filteredSpecialities}
-                specialities={specialities}
-                handleSpecialitySelect={handleSpecialitySelect}
-                showEditButtons={false}
-            />
         </Modal>
     );
 }

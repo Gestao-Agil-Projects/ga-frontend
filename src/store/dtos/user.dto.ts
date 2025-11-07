@@ -5,6 +5,8 @@ export type TUserDto = {
     setUser: (user: TUserData | null) => void;
     userAccountData: TUserAccountData | null;
     setUserAccountData: (userAccountData: TUserAccountData | null) => void;
+    currentUserData: TUserData | null;
+    setCurrentUserData: (userData: TUserData | null) => void;
 }
 
 export type TUserAccountData = {
