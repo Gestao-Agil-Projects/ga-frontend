@@ -3,15 +3,6 @@ export interface ICreateScheduleProps {
     email?: string;
 }
 
-export interface ICreateAdminScheduleProps {
-    patient_id: string;
-    professional_id: string;
-    specialty_id: string;
-    date: string; // ISO datetime string
-    availability_id: string;
-    email: string;
-}
-
 export interface IScheduleData {
     id: string;
     availability_id: string;

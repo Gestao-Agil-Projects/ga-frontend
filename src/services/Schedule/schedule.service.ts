@@ -1,5 +1,5 @@
 import { apiProfessional } from "../../config/api";
-import type { ICreateScheduleProps, ICreateAdminScheduleProps, IPatientSchedule } from "./types";
+import type { ICreateScheduleProps, IPatientSchedule } from "./types";
 
 export const scheduleService = {
     async postCreateSchedule(data: ICreateScheduleProps, token: string) {
@@ -14,7 +14,7 @@ export const scheduleService = {
         }
     },
 
-    async postCreateAdminSchedule(data: ICreateAdminScheduleProps, token: string) {
+    async postCreateAdminSchedule(data: ICreateScheduleProps, token: string) {
         try {
             const response = await apiProfessional(token).post("/api/admin/schedule/", data);
             return {

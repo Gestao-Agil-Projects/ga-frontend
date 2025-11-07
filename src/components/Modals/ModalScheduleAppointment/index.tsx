@@ -250,9 +250,6 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
             return;
         }
 
-        // Se não há especialidade selecionada, usar a primeira
-        const specialtyId = selectedSpecialty || selectedProfessionalData.specialities[0].id;
-
         setIsLoading(true);
         try {
             // Buscar o slot selecionado
@@ -261,16 +258,19 @@ export function ModalScheduleAppointment({ isOpen, onClose, patient }: ModalSche
                 throw new Error("Horário não encontrado");
             }
 
-            // Usar o datetime do slot (já está configurado corretamente)
-            const appointmentDate = new Date(slot.start_time);
-
-            const response = await scheduleService.postCreateSchedule(
-                {
-                    availability_id: slot.availability_id,
-                    email: patient.email
-                },
-                userAccountData.access_token
-            );
+            const response = userAccountData.is_superuser
+            ? await scheduleService.postCreateAdminSchedule({
+                        availability_id: slot.availability_id,
+                        email: patient.email
+                    },
+                    userAccountData.access_token
+                )
+            : await scheduleService.postCreateSchedule({
+                        availability_id: slot.availability_id,
+                        email: patient.email,
+                    },
+                    userAccountData.access_token
+                );
 
             if (response.status === 200 || response.status === 201) {
                 showToast("Sucesso!", "Consulta agendada com sucesso!", "success");
